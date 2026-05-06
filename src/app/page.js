@@ -24,6 +24,12 @@ export default function CustomerPage() {
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   
+  // Auth
+  const [user, setUser] = useState(null);
+  const [loginForm, setLoginForm] = useState({ username: '', password: '' });
+  const [loginError, setLoginError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  
   // Order history
   const [myOrderIds, setMyOrderIds] = useState([]);
   const [myOrders, setMyOrders] = useState([]);
@@ -41,8 +47,54 @@ export default function CustomerPage() {
         setMyOrderIds(JSON.parse(stored));
       }
     } catch (e) {}
-    loadMenu();
+    checkAuth();
   }, []);
+
+  async function checkAuth() {
+    try {
+      const res = await fetch('/api/me');
+      const data = await res.json();
+      if (data.authenticated) {
+        setUser(data.user);
+        loadMenu();
+      } else {
+        setLoading(false);
+      }
+    } catch (e) {
+      setLoading(false);
+    }
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    setIsLoggingIn(true);
+    setLoginError('');
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginForm)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUser(data.user);
+        setLoading(true);
+        loadMenu();
+      } else {
+        setLoginError(data.error);
+      }
+    } catch (err) {
+      setLoginError('网络错误，请重试');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  }
+
+  async function handleLogout() {
+    if (!confirm('确定要退出登录吗？')) return;
+    await fetch('/api/logout', { method: 'POST' });
+    setUser(null);
+  }
 
   async function loadMenu() {
     try {
@@ -213,7 +265,38 @@ export default function CustomerPage() {
     return (
       <div className={styles.loading}>
         <div className={styles.loadingSpinner}></div>
-        <p>菜单加载中...</p>
+        <p>加载中...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className={styles.loginPage}>
+        <div className={styles.loginCard}>
+          <h1 className={styles.loginTitle}>🍜 欢迎来到美味餐厅</h1>
+          <p className={styles.loginSubtitle}>请输入专属账号继续点单</p>
+          <form onSubmit={handleLogin} className={styles.loginForm}>
+            <input
+              type="text"
+              placeholder="账号"
+              value={loginForm.username}
+              onChange={e => setLoginForm({...loginForm, username: e.target.value})}
+              required
+            />
+            <input
+              type="password"
+              placeholder="密码"
+              value={loginForm.password}
+              onChange={e => setLoginForm({...loginForm, password: e.target.value})}
+              required
+            />
+            {loginError && <div className={styles.errorMsg}>{loginError}</div>}
+            <button type="submit" disabled={isLoggingIn}>
+              {isLoggingIn ? '登录中...' : '进入餐厅'}
+            </button>
+          </form>
+        </div>
       </div>
     );
   }
@@ -225,9 +308,13 @@ export default function CustomerPage() {
         <div className={styles.headerLeft}>
           <h1 className={styles.logo}>🍜 美味餐厅</h1>
         </div>
-        <div className={styles.headerRight}>
+        <div className={styles.headerRight} style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+          <span style={{fontSize: '12px', color: 'var(--text-secondary)'}}>{user.username}</span>
           <button className={styles.historyBtn} onClick={() => setShowHistory(true)}>
             我的订单
+          </button>
+          <button className={styles.historyBtn} onClick={handleLogout} style={{color: '#ff4d4f'}}>
+            退出
           </button>
         </div>
       </header>
@@ -457,6 +544,11 @@ export default function CustomerPage() {
                         {order.remark && (
                           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
                             备注: {order.remark}
+                          </div>
+                        )}
+                        {order.admin_reply && (
+                          <div style={{ fontSize: '12px', color: '#ff6b35', marginTop: '6px', background: '#fff0e6', padding: '6px', borderRadius: '4px' }}>
+                            👨‍🍳 店长回复: {order.admin_reply}
                           </div>
                         )}
                       </div>

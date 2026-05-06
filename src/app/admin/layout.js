@@ -8,6 +8,7 @@ const navItems = [
   { href: '/admin/orders', icon: '📋', label: '订单管理' },
   { href: '/admin/menu', icon: '📦', label: '菜品管理' },
   { href: '/admin/history', icon: '📊', label: '历史统计' },
+  { href: '/admin/users', icon: '👥', label: '账号管理' },
 ];
 
 export default function AdminLayout({ children }) {

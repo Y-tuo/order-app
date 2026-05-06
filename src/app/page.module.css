@@ -731,3 +731,85 @@
   border-top: 1px solid var(--border-light);
   padding-top: 8px;
 }
+
+/* ============ Login Page ============ */
+.loginPage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: var(--bg);
+  padding: 20px;
+}
+
+.loginCard {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 40px 30px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  animation: slideUp 0.4s ease;
+}
+
+.loginTitle {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.loginSubtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.loginForm input {
+  padding: 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.loginForm input:focus {
+  border-color: var(--primary);
+}
+
+.loginForm button {
+  background: var(--primary);
+  color: var(--white);
+  border: none;
+  padding: 14px;
+  border-radius: var(--radius-full);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(255, 107, 53, 0.3);
+  margin-top: 8px;
+  transition: all 0.2s;
+}
+
+.loginForm button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.loginForm button:active {
+  transform: scale(0.98);
+}
+
+.errorMsg {
+  color: #ff4d4f;
+  font-size: 13px;
+  text-align: left;
+}

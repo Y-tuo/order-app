@@ -6,19 +6,24 @@ import styles from './history.module.css';
 
 export default function HistoryPage() {
   const [orders, setOrders] = useState([]);
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, revenue: 0, pending: 0, cooking: 0, done: 0, avgPrice: 0 });
   const router = useRouter();
 
   useEffect(() => {
     loadHistory();
-  }, [date]);
+  }, [startDate, endDate]);
 
   async function loadHistory() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/orders?date=${date}&limit=200`);
+      const params = new URLSearchParams();
+      if (startDate) params.set('startDate', startDate);
+      if (endDate) params.set('endDate', endDate);
+      params.set('limit', '500'); // Increase limit for history
+      const res = await fetch(`/api/admin/orders?${params.toString()}`);
       if (res.status === 401) { router.push('/admin/login'); return; }
       const data = await res.json();
       if (data.orders) {
@@ -43,7 +48,13 @@ export default function HistoryPage() {
 
   function formatTime(dateStr) {
     const d = new Date(dateStr);
-    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+    const YY = d.getFullYear();
+    const MM = (d.getMonth() + 1).toString().padStart(2, '0');
+    const DD = d.getDate().toString().padStart(2, '0');
+    const hh = d.getHours().toString().padStart(2, '0');
+    const mm = d.getMinutes().toString().padStart(2, '0');
+    const ss = d.getSeconds().toString().padStart(2, '0');
+    return `${YY}-${MM}-${DD} ${hh}:${mm}:${ss}`;
   }
 
   const statusLabel = { pending: '待处理', cooking: '制作中', done: '已完成' };
@@ -52,12 +63,23 @@ export default function HistoryPage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <h1 className={styles.title}>📊 历史统计</h1>
-        <input
-          type="date"
-          value={date}
-          onChange={e => setDate(e.target.value)}
-          className={styles.datePicker}
-        />
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <input
+            type="date"
+            value={startDate}
+            onChange={e => setStartDate(e.target.value)}
+            className={styles.datePicker}
+            placeholder="开始日期"
+          />
+          <span style={{ alignSelf: 'center', color: 'var(--text-secondary)' }}>至</span>
+          <input
+            type="date"
+            value={endDate}
+            onChange={e => setEndDate(e.target.value)}
+            className={styles.datePicker}
+            placeholder="结束日期"
+          />
+        </div>
       </div>
 
       {/* Stats Cards */}

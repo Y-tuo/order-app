@@ -16,6 +16,7 @@ export default function OrdersPage() {
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, revenue: 0, pending: 0 });
+  const [replyText, setReplyText] = useState({});
   const router = useRouter();
 
   const loadOrders = useCallback(async () => {
@@ -85,6 +86,20 @@ export default function OrdersPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, status })
+      });
+      loadOrders();
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function updateAdminReply(id) {
+    const text = replyText[id] || '';
+    try {
+      await fetch('/api/admin/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, admin_reply: text })
       });
       loadOrders();
     } catch (err) {
@@ -203,6 +218,26 @@ export default function OrdersPage() {
                 {order.remark && (
                   <div className={styles.orderRemark}>📝 {order.remark}</div>
                 )}
+                {order.admin_reply && (
+                  <div style={{ fontSize: '13px', color: '#ff6b35', marginTop: '8px', background: '#fff0e6', padding: '8px', borderRadius: '4px' }}>
+                    👨‍🍳 已回复: {order.admin_reply}
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+                  <input
+                    type="text"
+                    value={replyText[order.id] !== undefined ? replyText[order.id] : (order.admin_reply || '')}
+                    onChange={e => setReplyText({ ...replyText, [order.id]: e.target.value })}
+                    placeholder="回复顾客备注..."
+                    style={{ flex: 1, padding: '6px', fontSize: '13px', border: '1px solid #ddd', borderRadius: '4px' }}
+                  />
+                  <button
+                    onClick={() => updateAdminReply(order.id)}
+                    style={{ padding: '6px 12px', fontSize: '13px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '4px', cursor: 'pointer' }}
+                  >
+                    保存回复
+                  </button>
+                </div>
               </div>
 
               <div className={styles.orderFooter}>

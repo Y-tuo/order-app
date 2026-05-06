@@ -9,7 +9,8 @@ export async function GET(request) {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
-    const date = searchParams.get('date');
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
 
@@ -23,9 +24,11 @@ export async function GET(request) {
       query = query.eq('status', status);
     }
 
-    if (date) {
-      query = query.gte('created_at', `${date}T00:00:00`)
-                    .lt('created_at', `${date}T23:59:59`);
+    if (startDate) {
+      query = query.gte('created_at', `${startDate}T00:00:00`);
+    }
+    if (endDate) {
+      query = query.lte('created_at', `${endDate}T23:59:59`);
     }
 
     const { data: orders, error } = await query;
@@ -39,9 +42,11 @@ export async function GET(request) {
     if (status && status !== 'all') {
       countQuery = countQuery.eq('status', status);
     }
-    if (date) {
-      countQuery = countQuery.gte('created_at', `${date}T00:00:00`)
-                              .lt('created_at', `${date}T23:59:59`);
+    if (startDate) {
+      countQuery = countQuery.gte('created_at', `${startDate}T00:00:00`);
+    }
+    if (endDate) {
+      countQuery = countQuery.lte('created_at', `${endDate}T23:59:59`);
     }
 
     const { count } = await countQuery;
@@ -60,11 +65,15 @@ export async function PUT(request) {
   try {
     await requireAdmin();
 
-    const { id, status } = await request.json();
+    const { id, status, admin_reply } = await request.json();
+
+    const updatePayload = { updated_at: new Date().toISOString() };
+    if (status) updatePayload.status = status;
+    if (admin_reply !== undefined) updatePayload.admin_reply = admin_reply;
 
     const { error } = await supabaseAdmin
       .from('orders')
-      .update({ status, updated_at: new Date().toISOString() })
+      .update(updatePayload)
       .eq('id', id);
 
     if (error) throw error;

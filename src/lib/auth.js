@@ -24,6 +24,21 @@ export async function getAdminSession() {
 
 export async function requireAdmin() {
   const session = await getAdminSession();
+  if (!session || session.role !== 'admin') {
+    throw new Error('Unauthorized');
+  }
+  return session;
+}
+
+export async function getCustomerSession() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('customer_token')?.value;
+  if (!token) return null;
+  return verifyToken(token);
+}
+
+export async function requireCustomer() {
+  const session = await getCustomerSession();
   if (!session) {
     throw new Error('Unauthorized');
   }
