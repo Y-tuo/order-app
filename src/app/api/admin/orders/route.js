@@ -78,3 +78,31 @@ export async function PUT(request) {
     return NextResponse.json({ error: '更新订单失败' }, { status: 500 });
   }
 }
+
+export async function DELETE(request) {
+  try {
+    await requireAdmin();
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: '缺少订单 ID' }, { status: 400 });
+    }
+
+    const { error } = await supabaseAdmin
+      .from('orders')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    if (err.message === 'Unauthorized') {
+      return NextResponse.json({ error: '未登录' }, { status: 401 });
+    }
+    console.error('Order deletion error:', err);
+    return NextResponse.json({ error: '删除订单失败' }, { status: 500 });
+  }
+}

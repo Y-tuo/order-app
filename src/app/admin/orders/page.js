@@ -92,6 +92,18 @@ export default function OrdersPage() {
     }
   }
 
+  async function deleteOrder(id) {
+    if (!confirm('确定要永久删除此订单吗？删除后不可恢复。')) return;
+    try {
+      await fetch(`/api/admin/orders?id=${id}`, {
+        method: 'DELETE',
+      });
+      loadOrders();
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   function playSound() {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -217,6 +229,11 @@ export default function OrdersPage() {
                       onClick={() => updateOrderStatus(order.id, 'done')}
                     >完成出餐</button>
                   )}
+                  <button
+                    className={styles.actionDelete}
+                    onClick={() => deleteOrder(order.id)}
+                    style={{ background: '#ff4d4f', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', marginLeft: '8px' }}
+                  >删除</button>
                 </div>
               </div>
             </div>
