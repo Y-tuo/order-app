@@ -202,7 +202,7 @@ export default function MenuPage() {
                       <div className={styles.itemDesc}>{item.description}</div>
                     </td>
                     <td>{getCategoryName(item.category_id)}</td>
-                    <td className={styles.itemPrice}>¥{item.price}</td>
+                    <td className={styles.itemPrice}>{item.price} 饭票</td>
                     <td>
                       <button
                         className={`${styles.toggleBtn} ${item.is_available ? styles.toggleOn : styles.toggleOff}`}
@@ -243,7 +243,7 @@ export default function MenuPage() {
                 <input value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
               </div>
               <div className={styles.formRow}>
-                <label>价格 (元)</label>
+                <label>价格 (饭票)</label>
                 <input type="number" step="0.01" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} required />
               </div>
               <div className={styles.formRow}>

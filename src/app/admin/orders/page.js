@@ -133,7 +133,7 @@ export default function OrdersPage() {
             <span className={styles.statLabel}>今日订单</span>
           </div>
           <div className={`${styles.statCard} ${styles.statRevenue}`}>
-            <span className={styles.statValue}>¥{stats.revenue}</span>
+            <span className={styles.statValue}>{stats.revenue} 饭票</span>
             <span className={styles.statLabel}>今日营收</span>
           </div>
           <div className={`${styles.statCard} ${styles.statPending}`}>
@@ -175,7 +175,6 @@ export default function OrdersPage() {
               <div className={styles.orderHeader}>
                 <div className={styles.orderIdRow}>
                   <span className={styles.orderId}>#{order.id}</span>
-                  <span className={styles.orderTable}>🪑 {order.table_no}</span>
                 </div>
                 <span className={`${styles.statusBadge} ${styles[STATUS_MAP[order.status]?.className]}`}>
                   {STATUS_MAP[order.status]?.label}
@@ -186,7 +185,7 @@ export default function OrdersPage() {
                 {order.order_items?.map((item, i) => (
                   <div key={i} className={styles.orderItemRow}>
                     <span>{item.name} × {item.quantity}</span>
-                    <span>¥{item.price * item.quantity}</span>
+                    <span>{item.price * item.quantity} 饭票</span>
                   </div>
                 ))}
                 {order.remark && (
@@ -196,7 +195,7 @@ export default function OrdersPage() {
 
               <div className={styles.orderFooter}>
                 <div>
-                  <div className={styles.orderTotal}>¥{order.total_price}</div>
+                  <div className={styles.orderTotal}>{order.total_price} 饭票</div>
                   <div className={styles.orderTime}>⏰ {formatTime(order.created_at)}</div>
                 </div>
                 <div className={styles.orderActions}>

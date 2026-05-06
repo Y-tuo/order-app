@@ -69,12 +69,12 @@ export default function HistoryPage() {
         </div>
         <div className={`${styles.statCard} ${styles.statHighlight}`}>
           <div className={styles.statIcon}>💰</div>
-          <div className={styles.statValue}>¥{stats.revenue}</div>
+          <div className={styles.statValue}>{stats.revenue} 饭票</div>
           <div className={styles.statLabel}>总营收</div>
         </div>
         <div className={styles.statCard}>
           <div className={styles.statIcon}>📊</div>
-          <div className={styles.statValue}>¥{stats.avgPrice}</div>
+          <div className={styles.statValue}>{stats.avgPrice} 饭票</div>
           <div className={styles.statLabel}>平均客单价</div>
         </div>
         <div className={styles.statCard}>
@@ -128,7 +128,6 @@ export default function HistoryPage() {
               <thead>
                 <tr>
                   <th>订单号</th>
-                  <th>桌号</th>
                   <th>菜品</th>
                   <th>金额</th>
                   <th>状态</th>
@@ -139,11 +138,10 @@ export default function HistoryPage() {
                 {orders.map(order => (
                   <tr key={order.id}>
                     <td className={styles.orderId}>#{order.id}</td>
-                    <td>{order.table_no}</td>
                     <td className={styles.orderItems}>
                       {order.order_items?.map(i => `${i.name}×${i.quantity}`).join('、')}
                     </td>
-                    <td className={styles.orderPrice}>¥{order.total_price}</td>
+                    <td className={styles.orderPrice}>{order.total_price} 饭票</td>
                     <td>
                       <span className={`${styles.statusTag} ${styles[`status_${order.status}`]}`}>
                         {statusLabel[order.status]}

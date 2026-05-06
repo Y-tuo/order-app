@@ -4,6 +4,12 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import styles from './page.module.css';
 
+const STATUS_MAP = {
+  pending: '待处理',
+  cooking: '制作中',
+  done: '已完成'
+};
+
 export default function CustomerPage() {
   const [categories, setCategories] = useState([]);
   const [menuItems, setMenuItems] = useState({});
@@ -12,18 +18,29 @@ export default function CustomerPage() {
   const [showCart, setShowCart] = useState(false);
   const [showOrder, setShowOrder] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [orderId, setOrderId] = useState(null);
-  const [tableNo, setTableNo] = useState('');
   const [remark, setRemark] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  // Order history
+  const [myOrderIds, setMyOrderIds] = useState([]);
+  const [myOrders, setMyOrders] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   const menuRef = useRef(null);
   const sectionRefs = useRef({});
   const isScrolling = useRef(false);
 
-  // Load menu data
+  // Initialize from local storage
   useEffect(() => {
+    try {
+      const stored = localStorage.getItem('myOrderIds');
+      if (stored) {
+        setMyOrderIds(JSON.parse(stored));
+      }
+    } catch (e) {}
     loadMenu();
   }, []);
 
@@ -44,6 +61,29 @@ export default function CustomerPage() {
       setLoading(false);
     }
   }
+
+  // Load order history
+  const loadHistory = useCallback(async () => {
+    if (myOrderIds.length === 0) return;
+    setLoadingHistory(true);
+    try {
+      const res = await fetch(`/api/my-orders?ids=${myOrderIds.join(',')}`);
+      const data = await res.json();
+      if (data.orders) {
+        setMyOrders(data.orders);
+      }
+    } catch (err) {
+      console.error('获取历史记录失败:', err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  }, [myOrderIds]);
+
+  useEffect(() => {
+    if (showHistory) {
+      loadHistory();
+    }
+  }, [showHistory, loadHistory]);
 
   // Scroll spy - update active category based on scroll position
   const handleScroll = useCallback(() => {
@@ -130,7 +170,7 @@ export default function CustomerPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tableNo: tableNo.trim() || '未指定',
+          tableNo: '未指定',
           remark: remark.trim(),
           items: cartItems.map(i => ({
             menu_item_id: i.id,
@@ -148,8 +188,12 @@ export default function CustomerPage() {
         setShowOrder(false);
         setShowSuccess(true);
         setCart({});
-        setTableNo('');
         setRemark('');
+        
+        // Save to history
+        const newHistory = [data.orderId, ...myOrderIds].slice(0, 50); // Keep last 50
+        setMyOrderIds(newHistory);
+        localStorage.setItem('myOrderIds', JSON.stringify(newHistory));
       } else {
         alert(data.error || '提交失败');
       }
@@ -158,6 +202,11 @@ export default function CustomerPage() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function formatTime(dateStr) {
+    const d = new Date(dateStr);
+    return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
   }
 
   if (loading) {
@@ -177,7 +226,9 @@ export default function CustomerPage() {
           <h1 className={styles.logo}>🍜 美味餐厅</h1>
         </div>
         <div className={styles.headerRight}>
-          <span className={styles.headerTag}>扫码点餐</span>
+          <button className={styles.historyBtn} onClick={() => setShowHistory(true)}>
+            我的订单
+          </button>
         </div>
       </header>
 
@@ -222,7 +273,7 @@ export default function CustomerPage() {
                     <p className={styles.menuItemDesc}>{item.description}</p>
                     <div className={styles.menuItemBottom}>
                       <span className={styles.menuItemPrice}>
-                        <em>¥</em>{item.price}
+                        {item.price}<em> 饭票</em>
                       </span>
                       <div className={styles.qtyControls}>
                         {cart[item.id] && (
@@ -261,7 +312,7 @@ export default function CustomerPage() {
           <div className={styles.cartInfo}>
             {totalCount > 0 ? (
               <>
-                <span className={styles.cartTotal}>¥{totalPrice.toFixed(0)}</span>
+                <span className={styles.cartTotal}>{totalPrice.toFixed(0)} 饭票</span>
                 <span className={styles.cartHint}>点击查看购物车</span>
               </>
             ) : (
@@ -291,7 +342,7 @@ export default function CustomerPage() {
                 <div key={item.id} className={styles.cartPanelItem}>
                   <div className={styles.cartPanelItemInfo}>
                     <span className={styles.cartPanelItemName}>{item.name}</span>
-                    <span className={styles.cartPanelItemPrice}>¥{item.price * item.qty}</span>
+                    <span className={styles.cartPanelItemPrice}>{item.price * item.qty} 饭票</span>
                   </div>
                   <div className={styles.qtyControls}>
                     <button className={styles.qtyBtnMinus} onClick={() => removeItem(item.id)}>−</button>
@@ -302,7 +353,7 @@ export default function CustomerPage() {
               ))}
             </div>
             <div className={styles.cartPanelFooter}>
-              <span className={styles.cartPanelTotal}>合计: <em>¥{totalPrice.toFixed(0)}</em></span>
+              <span className={styles.cartPanelTotal}>合计: <em>{totalPrice.toFixed(0)} 饭票</em></span>
               <button
                 className={styles.cartPanelSubmit}
                 onClick={() => { setShowCart(false); setShowOrder(true); }}
@@ -322,16 +373,6 @@ export default function CustomerPage() {
             </div>
             <div className={styles.orderBody}>
               <div className={styles.formGroup}>
-                <label>桌号</label>
-                <input
-                  type="text"
-                  value={tableNo}
-                  onChange={e => setTableNo(e.target.value)}
-                  placeholder="请输入桌号，如：A3"
-                  maxLength={10}
-                />
-              </div>
-              <div className={styles.formGroup}>
                 <label>备注</label>
                 <textarea
                   value={remark}
@@ -345,12 +386,12 @@ export default function CustomerPage() {
                 {cartItems.map(item => (
                   <div key={item.id} className={styles.orderSummaryItem}>
                     <span>{item.name} × {item.qty}</span>
-                    <span>¥{item.price * item.qty}</span>
+                    <span>{item.price * item.qty} 饭票</span>
                   </div>
                 ))}
                 <div className={styles.orderSummaryTotal}>
                   <span>合计</span>
-                  <span>¥{totalPrice.toFixed(0)}</span>
+                  <span>{totalPrice.toFixed(0)} 饭票</span>
                 </div>
               </div>
               <button
@@ -377,6 +418,56 @@ export default function CustomerPage() {
               className={styles.successBtn}
               onClick={() => setShowSuccess(false)}
             >继续点菜</button>
+          </div>
+        </div>
+      )}
+
+      {/* Order History Overlay */}
+      {showHistory && (
+        <div className={styles.overlay} onClick={() => setShowHistory(false)}>
+          <div className={styles.orderPanel} onClick={e => e.stopPropagation()}>
+            <div className={styles.orderHeader}>
+              <h3>我的订单</h3>
+              <button className={styles.orderClose} onClick={() => setShowHistory(false)}>✕</button>
+            </div>
+            <div className={styles.orderBody}>
+              {myOrderIds.length === 0 ? (
+                <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px 0' }}>
+                  暂无点菜记录
+                </div>
+              ) : loadingHistory ? (
+                <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px 0' }}>
+                  加载中...
+                </div>
+              ) : (
+                <div className={styles.historyList}>
+                  {myOrders.map(order => (
+                    <div key={order.id} className={styles.historyCard}>
+                      <div className={styles.historyCardHeader}>
+                        <span>订单 #{order.id} ({formatTime(order.created_at)})</span>
+                        <span className={styles.historyCardStatus}>{STATUS_MAP[order.status] || order.status}</span>
+                      </div>
+                      <div className={styles.historyCardBody}>
+                        {order.order_items?.map((item, i) => (
+                          <div key={i} className={styles.historyCardItem}>
+                            <span>{item.name} × {item.quantity}</span>
+                            <span>{item.price * item.quantity} 饭票</span>
+                          </div>
+                        ))}
+                        {order.remark && (
+                          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                            备注: {order.remark}
+                          </div>
+                        )}
+                      </div>
+                      <div className={styles.historyCardTotal}>
+                        合计: {order.total_price} 饭票
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
