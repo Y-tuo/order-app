@@ -42,31 +42,24 @@ export async function POST(request) {
 
     if (itemsError) throw itemsError;
 
-    // Send Push Notification (PushPlus)
-    const pushToken = process.env.PUSHPLUS_TOKEN;
-    if (pushToken) {
+    // Send Push Notification (Bark)
+    const barkUrl = process.env.BARK_URL || 'https://api.day.app/mHK5xZ9h7uoUVC3XYdmo3H/';
+    if (barkUrl) {
       try {
         const title = `新订单提醒 - ${totalPrice} 饭票`;
-        const content = `
-下单人: ${session?.username || '未知家庭成员'}
-总价: ${totalPrice} 饭票
-备注: ${remark || '无'}
-菜品明细:
-${items.map(i => `- ${i.name} × ${i.quantity}`).join('\n')}
-        `.trim();
+        const body = `下单人: ${session?.username || '未知家庭成员'}\n总价: ${totalPrice} 饭票\n备注: ${remark || '无'}\n菜品明细:\n${items.map(i => `- ${i.name} × ${i.quantity}`).join('\n')}`;
         
-        await fetch('http://www.pushplus.plus/send', {
+        await fetch(barkUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json; charset=utf-8' },
           body: JSON.stringify({
-            token: pushToken,
             title,
-            content,
-            template: 'txt'
+            body,
+            icon: 'https://cdn-icons-png.flaticon.com/512/3170/3170733.png' // optional icon
           })
         });
       } catch (pushErr) {
-        console.error('Push notification failed:', pushErr);
+        console.error('Bark notification failed:', pushErr);
       }
     }
 
