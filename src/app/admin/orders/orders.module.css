@@ -1,0 +1,268 @@
+.page { padding: 24px; }
+
+.header { margin-bottom: 24px; }
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.statsRow {
+  display: flex;
+  gap: 12px;
+}
+
+.statCard {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statValue {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.statRevenue .statValue { color: var(--primary); }
+.statPending .statValue { color: var(--red); }
+
+.statLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Filter Bar */
+.filterBar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filterBtn {
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.filterActive {
+  background: var(--primary);
+  color: var(--white);
+  border-color: var(--primary);
+}
+
+.filterBadge {
+  min-width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  background: var(--red);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filterActive .filterBadge {
+  background: rgba(255,255,255,0.3);
+}
+
+.refreshBtn {
+  margin-left: auto;
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text-secondary);
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.refreshBtn:hover {
+  background: var(--bg);
+}
+
+/* Orders Grid */
+.ordersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 14px;
+}
+
+.empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.emptyIcon {
+  font-size: 48px;
+  margin-bottom: 8px;
+  opacity: 0.5;
+}
+
+/* Order Card */
+.orderCard {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  animation: slideUp 0.3s ease both;
+  transition: box-shadow 0.2s;
+}
+
+.orderCard:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.orderHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.orderIdRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.orderId {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.orderTable {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: var(--blue-bg);
+  color: var(--blue);
+}
+
+.statusBadge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+}
+
+.statusPending {
+  background: var(--red-bg);
+  color: var(--red);
+}
+
+.statusCooking {
+  background: var(--yellow-bg);
+  color: var(--yellow);
+}
+
+.statusDone {
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+.orderBody {
+  padding: 12px 16px;
+}
+
+.orderItemRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.orderRemark {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--primary-bg);
+  border-radius: var(--radius-xs);
+  border-left: 3px solid var(--primary);
+  font-size: 13px;
+  color: var(--primary-dark);
+}
+
+.orderFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-light);
+}
+
+.orderTotal {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.orderTime {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.orderActions {
+  display: flex;
+  gap: 6px;
+}
+
+.actionCooking, .actionDone {
+  padding: 7px 14px;
+  border-radius: var(--radius-full);
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.actionCooking {
+  background: var(--yellow-bg);
+  color: #B27300;
+  border: 1px solid var(--yellow-border);
+}
+
+.actionCooking:hover {
+  background: var(--yellow);
+  color: var(--white);
+}
+
+.actionDone {
+  background: var(--green-bg);
+  color: #1B7F37;
+  border: 1px solid var(--green-border);
+}
+
+.actionDone:hover {
+  background: var(--green);
+  color: var(--white);
+}
+
+@media (max-width: 768px) {
+  .page { padding: 16px; }
+  .statsRow { flex-direction: column; }
+  .ordersGrid { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,59 @@
+.page { padding: 24px; }
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.title { font-size: 22px; font-weight: 700; }
+.headerActions { display: flex; gap: 8px; }
+.addBtn, .addCatBtn { padding: 8px 18px; border-radius: var(--radius-full); border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.addBtn { background: var(--primary); color: var(--white); box-shadow: 0 4px 12px rgba(255,107,53,0.25); }
+.addCatBtn { background: var(--white); color: var(--primary); border: 1px solid var(--primary); }
+
+/* Categories */
+.catSection { margin-bottom: 28px; }
+.sectionTitle { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: var(--text-secondary); }
+.catGrid { display: flex; gap: 10px; flex-wrap: wrap; }
+.catCard { display: flex; align-items: center; gap: 8px; background: var(--white); padding: 10px 16px; border-radius: var(--radius-md); border: 1px solid var(--border); position: relative; }
+.catIcon { font-size: 20px; }
+.catName { font-size: 14px; font-weight: 600; }
+.catCount { font-size: 12px; color: var(--text-muted); }
+.catDeleteBtn { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; border: none; background: var(--red); color: var(--white); font-size: 11px; display: none; align-items: center; justify-content: center; cursor: pointer; }
+.catCard:hover .catDeleteBtn { display: flex; }
+
+/* Table */
+.tableSection { background: var(--white); border-radius: var(--radius-md); border: 1px solid var(--border); overflow: hidden; }
+.tableSection .sectionTitle { padding: 16px 16px 0; }
+.tableWrap { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.table th { text-align: left; padding: 12px 16px; background: var(--bg); color: var(--text-secondary); font-weight: 600; font-size: 13px; border-bottom: 1px solid var(--border); }
+.table td { padding: 12px 16px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
+.table tr:last-child td { border-bottom: none; }
+.table tr:hover { background: var(--bg); }
+.itemImg { width: 48px; height: 48px; border-radius: var(--radius-xs); object-fit: cover; }
+.itemName { font-weight: 600; margin-bottom: 2px; }
+.itemDesc { font-size: 12px; color: var(--text-muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.itemPrice { font-weight: 700; color: var(--primary); }
+.toggleBtn { padding: 4px 12px; border-radius: var(--radius-full); border: none; font-size: 12px; font-weight: 600; cursor: pointer; }
+.toggleOn { background: var(--green-bg); color: var(--green); }
+.toggleOff { background: var(--red-bg); color: var(--red); }
+.actions { display: flex; gap: 6px; }
+.editBtn, .deleteBtn { padding: 5px 12px; border-radius: var(--radius-xs); border: none; font-size: 12px; font-weight: 500; cursor: pointer; }
+.editBtn { background: var(--blue-bg); color: var(--blue); }
+.deleteBtn { background: var(--red-bg); color: var(--red); }
+
+/* Modal */
+.overlay { position: fixed; inset: 0; background: var(--bg-overlay); z-index: 500; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.2s ease; }
+.modal { background: var(--white); border-radius: var(--radius-lg); width: 90%; max-width: 480px; max-height: 85vh; overflow-y: auto; animation: scaleIn 0.25s ease; }
+.modalHeader { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--border); }
+.modalHeader h3 { font-size: 17px; font-weight: 700; }
+.modalClose { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--bg); color: var(--text-secondary); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+.form { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.formRow { display: flex; flex-direction: column; gap: 6px; }
+.formRow label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+.formRow input, .formRow select, .formRow textarea { padding: 10px 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); font-size: 14px; outline: none; }
+.formRow input:focus, .formRow select:focus { border-color: var(--primary); }
+.checkLabel { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.checkLabel input { width: 18px; height: 18px; accent-color: var(--primary); }
+.submitBtn { padding: 12px; border-radius: var(--radius-md); border: none; background: var(--primary); color: var(--white); font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(255,107,53,0.25); }
+
+.loading { padding: 40px; text-align: center; color: var(--text-muted); }
+
+@media (max-width: 768px) { .page { padding: 16px; } }
