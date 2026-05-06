@@ -9,6 +9,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [isEditing, setIsEditing] = useState(false);
+  const [showPassword, setShowPassword] = useState({});
   const router = useRouter();
 
   useEffect(() => {
@@ -57,11 +58,20 @@ export default function UsersPage() {
   async function handleDelete(id) {
     if (!confirm('确定要删除此账号吗？该用户将无法再登录点餐。')) return;
     try {
-      await fetch(`/api/admin/users?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/users?id=${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.error || '删除失败');
+      }
       loadUsers();
     } catch (err) {
       console.error(err);
+      alert('删除失败');
     }
+  }
+
+  function togglePassword(id) {
+    setShowPassword(prev => ({ ...prev, [id]: !prev[id] }));
   }
 
   return (
@@ -109,6 +119,7 @@ export default function UsersPage() {
               <thead>
                 <tr>
                   <th>账号</th>
+                  <th>密码</th>
                   <th>创建时间</th>
                   <th>操作</th>
                 </tr>
@@ -117,6 +128,20 @@ export default function UsersPage() {
                 {users.map(user => (
                   <tr key={user.id}>
                     <td>{user.username}</td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontFamily: showPassword[user.id] ? 'inherit' : 'monospace', fontSize: showPassword[user.id] ? '14px' : '18px', display: 'inline-block', width: '80px' }}>
+                          {showPassword[user.id] ? user.password : '••••••'}
+                        </span>
+                        <button 
+                          onClick={() => togglePassword(user.id)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: 'var(--text-secondary)' }}
+                          title={showPassword[user.id] ? '隐藏密码' : '显示密码'}
+                        >
+                          {showPassword[user.id] ? '🙈' : '👁️'}
+                        </button>
+                      </div>
+                    </td>
                     <td>{new Date(user.created_at).toLocaleDateString()}</td>
                     <td>
                       <button className={styles.btnEdit} onClick={() => { setIsEditing(true); setFormData({ id: user.id, username: user.username, password: '' }); }}>改密</button>
@@ -125,7 +150,7 @@ export default function UsersPage() {
                   </tr>
                 ))}
                 {users.length === 0 && (
-                  <tr><td colSpan="3" style={{textAlign:'center', color:'#999'}}>暂无账号，请在左侧添加</td></tr>
+                  <tr><td colSpan="4" style={{textAlign:'center', color:'#999'}}>暂无账号，请在左侧添加</td></tr>
                 )}
               </tbody>
             </table>

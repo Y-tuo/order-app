@@ -16,7 +16,7 @@ export async function GET(request) {
 
     let query = supabaseAdmin
       .from('orders')
-      .select('*, order_items(*)')
+      .select('*, order_items(*), customers(username)')
       .order('created_at', { ascending: false })
       .range((page - 1) * limit, page * limit - 1);
 

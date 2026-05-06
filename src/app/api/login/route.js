@@ -24,8 +24,7 @@ export async function POST(request) {
     }
 
     // Verify password
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
+    if (password !== user.password) {
       return NextResponse.json({ error: '账号或密码错误' }, { status: 401 });
     }
 

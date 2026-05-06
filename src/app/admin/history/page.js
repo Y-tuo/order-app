@@ -159,7 +159,12 @@ export default function HistoryPage() {
               <tbody>
                 {orders.map(order => (
                   <tr key={order.id}>
-                    <td className={styles.orderId}>#{order.id}</td>
+                    <td className={styles.orderId}>
+                      #{order.id}
+                      {order.customers?.username && (
+                        <div style={{ fontSize: '12px', color: 'var(--primary)', marginTop: '4px' }}>👤 {order.customers.username}</div>
+                      )}
+                    </td>
                     <td className={styles.orderItems}>
                       {order.order_items?.map(i => `${i.name}×${i.quantity}`).join('、')}
                     </td>

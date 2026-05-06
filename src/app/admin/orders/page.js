@@ -202,6 +202,11 @@ export default function OrdersPage() {
               <div className={styles.orderHeader}>
                 <div className={styles.orderIdRow}>
                   <span className={styles.orderId}>#{order.id}</span>
+                  {order.customers?.username && (
+                    <span style={{ fontSize: '14px', marginLeft: '8px', color: 'var(--primary)', fontWeight: 'bold' }}>
+                      👤 {order.customers.username}
+                    </span>
+                  )}
                 </div>
                 <span className={`${styles.statusBadge} ${styles[STATUS_MAP[order.status]?.className]}`}>
                   {STATUS_MAP[order.status]?.label}

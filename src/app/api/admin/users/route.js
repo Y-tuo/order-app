@@ -9,7 +9,7 @@ export async function GET(request) {
     await requireAdmin();
     const { data: users, error } = await supabaseAdmin
       .from('customers')
-      .select('id, username, created_at')
+      .select('id, username, password, created_at')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -29,10 +29,9 @@ export async function POST(request) {
       return NextResponse.json({ error: '请填写账号和密码' }, { status: 400 });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
     const { error } = await supabaseAdmin
       .from('customers')
-      .insert({ username, password: hashedPassword });
+      .insert({ username, password });
 
     if (error) {
       if (error.code === '23505') {
@@ -57,10 +56,9 @@ export async function PUT(request) {
       return NextResponse.json({ error: '密码不能为空' }, { status: 400 });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
     const { error } = await supabaseAdmin
       .from('customers')
-      .update({ password: hashedPassword })
+      .update({ password })
       .eq('id', id);
 
     if (error) throw error;
@@ -77,6 +75,13 @@ export async function DELETE(request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
+    // First set customer_id to null in orders to avoid foreign key constraint error
+    await supabaseAdmin
+      .from('orders')
+      .update({ customer_id: null })
+      .eq('customer_id', id);
+
+    // Then delete the user
     const { error } = await supabaseAdmin
       .from('customers')
       .delete()
@@ -86,6 +91,7 @@ export async function DELETE(request) {
     return NextResponse.json({ success: true });
   } catch (err) {
     if (err.message === 'Unauthorized') return NextResponse.json({ error: '未登录' }, { status: 401 });
+    console.error('Delete user error:', err);
     return NextResponse.json({ error: '删除账号失败' }, { status: 500 });
   }
 }
