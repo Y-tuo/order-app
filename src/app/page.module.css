@@ -821,6 +821,7 @@
 }
 
 .successBtn {
+  width: 100%;
   padding: 11px 36px;
   border-radius: var(--radius-full);
   border: none;
@@ -1078,5 +1079,32 @@
 .ingActions .ingDel {
   color: var(--red);
   background: var(--red-bg);
+}
+
+
+.successBtnOutline {
+  width: 100%;
+  padding: 11px 36px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 12px;
+  transition: all 0.2s;
+}
+
+.successBtnOutline:active {
+  background: var(--bg-hover);
+}
+
+.fixedBottomAction {
+  padding: 12px 16px;
+  background: var(--white);
+  border-top: 1px solid var(--border-light);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.03);
+  z-index: 10;
+  flex-shrink: 0;
 }
 
