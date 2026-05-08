@@ -20,6 +20,12 @@ export default function CustomerPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showTodayOrders, setShowTodayOrders] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showIngredients, setShowIngredients] = useState(false);
+  const [ingredients, setIngredients] = useState([]);
+  const [loadingIngredients, setLoadingIngredients] = useState(false);
+  const [ingredientForm, setIngredientForm] = useState(null);
+  const INGREDIENT_CATEGORIES = ['蔬菜', '肉类', '海鲜', '蛋奶', '调料', '主食', '其他'];
+  
   const [orderId, setOrderId] = useState(null);
   const [remark, setRemark] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -132,11 +138,73 @@ export default function CustomerPage() {
     }
   }, [myOrderIds]);
 
+  // Load ingredients
+  const loadIngredients = useCallback(async () => {
+    setLoadingIngredients(true);
+    try {
+      const res = await fetch('/api/ingredients');
+      const data = await res.json();
+      if (data.success) {
+        setIngredients(data.ingredients);
+      }
+    } catch (err) {
+      console.error('Failed to load ingredients:', err);
+    } finally {
+      setLoadingIngredients(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (showTodayOrders || showHistory) {
       loadHistory();
     }
   }, [showTodayOrders, showHistory, loadHistory]);
+
+  useEffect(() => {
+    if (showIngredients) {
+      loadIngredients();
+    }
+  }, [showIngredients, loadIngredients]);
+
+  async function saveIngredient(e) {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const url = ingredientForm.id ? `/api/ingredients?id=${ingredientForm.id}` : '/api/ingredients';
+      const method = ingredientForm.id ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ingredientForm)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIngredientForm(null);
+        loadIngredients();
+      } else {
+        alert(data.error || '保存失败');
+      }
+    } catch (err) {
+      alert('网络错误');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function deleteIngredient(id) {
+    if (!confirm('确定删除该食材吗？')) return;
+    try {
+      const res = await fetch(`/api/ingredients?id=${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        loadIngredients();
+      } else {
+        alert(data.error || '删除失败');
+      }
+    } catch (err) {
+      alert('网络错误');
+    }
+  }
 
   // 判断是否为今天的订单
   function isToday(dateStr) {
@@ -375,6 +443,9 @@ export default function CustomerPage() {
         </div>
         <div className={styles.headerRight} style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
           <span style={{fontSize: '12px', color: 'var(--text-secondary)'}}>👤 {user.username}</span>
+          <button className={styles.historyBtn} onClick={() => setShowIngredients(true)}>
+            家庭食材
+          </button>
           <button className={styles.historyBtn} onClick={() => setShowTodayOrders(true)}>
             我的订单
           </button>
@@ -625,6 +696,125 @@ export default function CustomerPage() {
                 </div>
               ) : (
                 renderOrderList(myOrders, '暂无历史订单记录')
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 家庭食材管理 */}
+      {showIngredients && (
+        <div className={styles.overlay} onClick={() => setShowIngredients(false)}>
+          <div className={styles.orderPanel} onClick={e => e.stopPropagation()}>
+            <div className={styles.orderHeader}>
+              <h3>🥦 家庭食材</h3>
+              <button className={styles.orderClose} onClick={() => setShowIngredients(false)}>✕</button>
+            </div>
+            <div className={styles.orderBody}>
+              {!ingredientForm ? (
+                <>
+                  <div style={{ marginBottom: '16px' }}>
+                    <button 
+                      className={styles.orderConfirmBtn} 
+                      onClick={() => setIngredientForm({ name: '', quantity: '', category: '蔬菜', remark: '' })}
+                      style={{ padding: '10px' }}
+                    >
+                      + 添加新食材
+                    </button>
+                  </div>
+                  {loadingIngredients ? (
+                    <div style={{ textAlign: 'center', padding: '20px' }}>加载中...</div>
+                  ) : ingredients.length === 0 ? (
+                    <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px 0' }}>
+                      <div style={{ fontSize: '36px', marginBottom: '8px', opacity: 0.5 }}>🥬</div>
+                      家里还没有记录食材哦
+                    </div>
+                  ) : (
+                    <div className={styles.historyList}>
+                      {ingredients.map(ing => (
+                        <div key={ing.id} className={styles.historyCard}>
+                          <div className={styles.historyCardHeader}>
+                            <span className={styles.historyCardId}>{ing.name} <span style={{ fontWeight: 'normal', color: 'var(--text-secondary)', marginLeft: '4px' }}>({ing.category})</span></span>
+                            <span className={styles.historyCardStatus}>{ing.quantity}</span>
+                          </div>
+                          <div className={styles.historyCardBody}>
+                            {ing.remark && (
+                              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                                备注: {ing.remark}
+                              </div>
+                            )}
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
+                              <span>更新于: {formatTime(ing.updated_at)} by {ing.last_updated_by}</span>
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <button className={styles.historyBtn} onClick={() => setIngredientForm(ing)}>编辑</button>
+                                <button className={styles.historyBtn} style={{ color: 'var(--red)', borderColor: 'var(--border)' }} onClick={() => deleteIngredient(ing.id)}>删除</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <form onSubmit={saveIngredient}>
+                  <div className={styles.formGroup}>
+                    <label>食材名称 *</label>
+                    <input 
+                      type="text" 
+                      required 
+                      value={ingredientForm.name} 
+                      onChange={e => setIngredientForm({...ingredientForm, name: e.target.value})} 
+                      placeholder="例如：西红柿、鸡蛋" 
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>数量</label>
+                    <input 
+                      type="text" 
+                      value={ingredientForm.quantity || ''} 
+                      onChange={e => setIngredientForm({...ingredientForm, quantity: e.target.value})} 
+                      placeholder="例如：3个、半斤" 
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>分类</label>
+                    <select 
+                      className={styles.selectInput}
+                      value={ingredientForm.category} 
+                      onChange={e => setIngredientForm({...ingredientForm, category: e.target.value})}
+                    >
+                      {INGREDIENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>备注</label>
+                    <input 
+                      type="text" 
+                      value={ingredientForm.remark || ''} 
+                      onChange={e => setIngredientForm({...ingredientForm, remark: e.target.value})} 
+                      placeholder="例如：快过期了" 
+                    />
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+                    <button 
+                      type="button" 
+                      className={styles.cartSubmitBtn} 
+                      style={{ flex: 1 }} 
+                      onClick={() => setIngredientForm(null)}
+                    >
+                      取消
+                    </button>
+                    <button 
+                      type="submit" 
+                      className={styles.cartSubmitActive} 
+                      style={{ flex: 1, border: 'none', borderRadius: 'var(--radius-full)', color: 'white', fontWeight: 600 }}
+                      disabled={submitting}
+                    >
+                      {submitting ? '保存中...' : '保存'}
+                    </button>
+                  </div>
+                </form>
               )}
             </div>
           </div>
