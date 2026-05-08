@@ -16,6 +16,8 @@ export default function MenuPage() {
   });
   const [showCatForm, setShowCatForm] = useState(false);
   const [catFormData, setCatFormData] = useState({ name: '', icon: '🍽️', sort_order: 0 });
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [batchMode, setBatchMode] = useState(false);
   const router = useRouter();
 
   useEffect(() => { loadMenu(); }, []);
@@ -92,6 +94,54 @@ export default function MenuPage() {
     }
   }
 
+  // 批量删除
+  async function batchDeleteItems() {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`确定删除选中的 ${selectedIds.size} 个菜品？此操作不可恢复。`)) return;
+    try {
+      const ids = Array.from(selectedIds).join(',');
+      const res = await fetch(`/api/admin/menu?ids=${ids}&type=item`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setSelectedIds(new Set());
+        setBatchMode(false);
+        loadMenu();
+      } else {
+        alert('批量删除失败');
+      }
+    } catch (err) {
+      alert('批量删除失败');
+    }
+  }
+
+  // 全选/反选
+  function toggleSelectAll() {
+    if (selectedIds.size === items.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(items.map(i => i.id)));
+    }
+  }
+
+  // 切换单项选择
+  function toggleSelect(id) {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  // 退出批量模式
+  function exitBatchMode() {
+    setBatchMode(false);
+    setSelectedIds(new Set());
+  }
+
   async function saveCategory(e) {
     e.preventDefault();
     try {
@@ -145,12 +195,52 @@ export default function MenuPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <h1 className={styles.title}>📦 菜品管理</h1>
+        <div>
+          <h1 className={styles.title}>📦 菜品管理</h1>
+          <p className={styles.subtitle}>管理您的菜单分类与菜品</p>
+        </div>
         <div className={styles.headerActions}>
-          <button className={styles.addCatBtn} onClick={() => setShowCatForm(true)}>+ 新增分类</button>
-          <button className={styles.addBtn} onClick={openAddItem}>+ 新增菜品</button>
+          {!batchMode ? (
+            <>
+              <button className={styles.batchBtn} onClick={() => setBatchMode(true)}>
+                <span>☑️</span> 批量管理
+              </button>
+              <button className={styles.addCatBtn} onClick={() => setShowCatForm(true)}>+ 新增分类</button>
+              <button className={styles.addBtn} onClick={openAddItem}>+ 新增菜品</button>
+            </>
+          ) : (
+            <>
+              <button className={styles.exitBatchBtn} onClick={exitBatchMode}>退出批量</button>
+            </>
+          )}
         </div>
       </div>
+
+      {/* Batch Action Bar */}
+      {batchMode && (
+        <div className={styles.batchBar}>
+          <div className={styles.batchLeft}>
+            <label className={styles.batchCheckAll}>
+              <input
+                type="checkbox"
+                checked={selectedIds.size === items.length && items.length > 0}
+                onChange={toggleSelectAll}
+              />
+              <span>全选</span>
+            </label>
+            <span className={styles.batchInfo}>
+              已选择 <em>{selectedIds.size}</em> / {items.length} 项
+            </span>
+          </div>
+          <button
+            className={styles.batchDeleteBtn}
+            disabled={selectedIds.size === 0}
+            onClick={batchDeleteItems}
+          >
+            🗑️ 删除选中 ({selectedIds.size})
+          </button>
+        </div>
+      )}
 
       {/* Categories */}
       <div className={styles.catSection}>
@@ -179,6 +269,15 @@ export default function MenuPage() {
             <table className={styles.table}>
               <thead>
                 <tr>
+                  {batchMode && (
+                    <th className={styles.thCheck}>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.size === items.length && items.length > 0}
+                        onChange={toggleSelectAll}
+                      />
+                    </th>
+                  )}
                   <th>图片</th>
                   <th>名称</th>
                   <th>分类</th>
@@ -189,7 +288,16 @@ export default function MenuPage() {
               </thead>
               <tbody>
                 {items.map(item => (
-                  <tr key={item.id}>
+                  <tr key={item.id} className={selectedIds.has(item.id) ? styles.rowSelected : ''}>
+                    {batchMode && (
+                      <td className={styles.tdCheck}>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(item.id)}
+                          onChange={() => toggleSelect(item.id)}
+                        />
+                      </td>
+                    )}
                     <td>
                       <img
                         src={item.image_url || '/images/placeholder.svg'}
@@ -201,7 +309,7 @@ export default function MenuPage() {
                       <div className={styles.itemName}>{item.name}</div>
                       <div className={styles.itemDesc}>{item.description}</div>
                     </td>
-                    <td>{getCategoryName(item.category_id)}</td>
+                    <td><span className={styles.catTag}>{getCategoryName(item.category_id)}</span></td>
                     <td className={styles.itemPrice}>{item.price} 饭票</td>
                     <td>
                       <button

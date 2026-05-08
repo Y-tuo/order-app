@@ -5,75 +5,92 @@
 
 /* ============ Sidebar ============ */
 .sidebar {
-  width: 220px;
-  background: var(--white);
-  border-right: 1px solid var(--border);
+  width: 240px;
+  background: var(--gradient-sidebar);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   position: sticky;
   top: 0;
   height: 100vh;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
+  z-index: 10;
 }
 
 .sidebarHeader {
-  padding: 24px 20px 20px;
-  border-bottom: 1px solid var(--border-light);
+  padding: 28px 24px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   text-align: center;
 }
 
 .sidebarLogo {
-  font-size: 32px;
+  font-size: 36px;
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+  animation: float 3s ease-in-out infinite;
 }
 
 .sidebarTitle {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #FFFFFF;
 }
 
 .sidebarSub {
   font-size: 12px;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 2px;
 }
 
 .nav {
   flex: 1;
-  padding: 12px 8px;
+  padding: 16px 12px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .navItem {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
+  gap: 12px;
+  padding: 13px 16px;
   border-radius: var(--radius-sm);
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-secondary);
-  transition: all 0.2s;
+  color: rgba(255, 255, 255, 0.65);
+  transition: all 0.25s;
   text-decoration: none;
+  position: relative;
 }
 
 .navItem:hover {
-  background: var(--bg);
-  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .navActive {
-  background: var(--primary-bg);
-  color: var(--primary);
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
   font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.navActive::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  background: var(--primary-light);
+  border-radius: 0 3px 3px 0;
 }
 
 .navActive:hover {
-  background: var(--primary-bg-hover);
-  color: var(--primary);
+  background: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
 }
 
 .navIcon {
@@ -85,8 +102,8 @@
 }
 
 .sidebarFooter {
-  padding: 12px 8px;
-  border-top: 1px solid var(--border-light);
+  padding: 14px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* ============ Main Content ============ */
@@ -108,8 +125,8 @@
     position: static;
     flex-direction: row;
     align-items: center;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
+    background: var(--gradient-sidebar);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   }
 
   .sidebarHeader {
@@ -126,9 +143,17 @@
 
   .navItem {
     flex-direction: column;
-    gap: 2px;
+    gap: 3px;
     padding: 8px 16px;
     font-size: 12px;
+  }
+
+  .navActive::before {
+    display: none;
+  }
+
+  .navActive {
+    background: rgba(255, 255, 255, 0.15);
   }
 
   .navIcon {

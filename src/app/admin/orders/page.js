@@ -203,7 +203,7 @@ export default function OrdersPage() {
                 <div className={styles.orderIdRow}>
                   <span className={styles.orderId}>#{order.id}</span>
                   {order.customers?.username && (
-                    <span style={{ fontSize: '14px', marginLeft: '8px', color: 'var(--primary)', fontWeight: 'bold' }}>
+                    <span style={{ fontSize: '13px', marginLeft: '8px', color: 'var(--primary)', fontWeight: '600', background: 'var(--primary-bg)', padding: '2px 10px', borderRadius: '20px' }}>
                       👤 {order.customers.username}
                     </span>
                   )}
@@ -224,7 +224,7 @@ export default function OrdersPage() {
                   <div className={styles.orderRemark}>📝 {order.remark}</div>
                 )}
                 {order.admin_reply && (
-                  <div style={{ fontSize: '13px', color: '#ff6b35', marginTop: '8px', background: '#fff0e6', padding: '8px', borderRadius: '4px' }}>
+                  <div style={{ fontSize: '13px', color: 'var(--primary)', marginTop: '8px', background: 'var(--primary-bg)', padding: '10px 12px', borderRadius: '8px' }}>
                     👨‍🍳 已回复: {order.admin_reply}
                   </div>
                 )}
@@ -234,11 +234,11 @@ export default function OrdersPage() {
                     value={replyText[order.id] !== undefined ? replyText[order.id] : (order.admin_reply || '')}
                     onChange={e => setReplyText({ ...replyText, [order.id]: e.target.value })}
                     placeholder="回复顾客备注..."
-                    style={{ flex: 1, padding: '6px', fontSize: '13px', border: '1px solid #ddd', borderRadius: '4px' }}
+                    style={{ flex: 1, padding: '9px 12px', fontSize: '13px', border: '1.5px solid var(--border)', borderRadius: '8px', outline: 'none', transition: 'all 0.2s' }}
                   />
                   <button
                     onClick={() => updateAdminReply(order.id)}
-                    style={{ padding: '6px 12px', fontSize: '13px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '4px', cursor: 'pointer' }}
+                    style={{ padding: '9px 16px', fontSize: '13px', background: 'var(--primary-bg)', border: '1.5px solid rgba(59,130,246,0.2)', borderRadius: '8px', cursor: 'pointer', color: 'var(--primary)', fontWeight: '500', transition: 'all 0.2s' }}
                   >
                     保存回复
                   </button>
@@ -272,7 +272,7 @@ export default function OrdersPage() {
                   <button
                     className={styles.actionDelete}
                     onClick={() => deleteOrder(order.id)}
-                    style={{ background: '#ff4d4f', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', marginLeft: '8px' }}
+                    style={{ background: 'var(--red)', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '20px', cursor: 'pointer', fontSize: '13px', marginLeft: '4px', fontWeight: '600', transition: 'all 0.2s' }}
                   >删除</button>
                 </div>
               </div>

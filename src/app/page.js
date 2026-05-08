@@ -18,6 +18,7 @@ export default function CustomerPage() {
   const [showCart, setShowCart] = useState(false);
   const [showOrder, setShowOrder] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showTodayOrders, setShowTodayOrders] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [orderId, setOrderId] = useState(null);
   const [remark, setRemark] = useState('');
@@ -132,10 +133,24 @@ export default function CustomerPage() {
   }, [myOrderIds]);
 
   useEffect(() => {
-    if (showHistory) {
+    if (showTodayOrders || showHistory) {
       loadHistory();
     }
-  }, [showHistory, loadHistory]);
+  }, [showTodayOrders, showHistory, loadHistory]);
+
+  // 判断是否为今天的订单
+  function isToday(dateStr) {
+    const d = new Date(dateStr);
+    const now = new Date();
+    return d.getFullYear() === now.getFullYear() &&
+           d.getMonth() === now.getMonth() &&
+           d.getDate() === now.getDate();
+  }
+
+  // 获取今日订单
+  const todayOrders = myOrders.filter(o => isToday(o.created_at));
+  // 获取历史订单（非今日）
+  const pastOrders = myOrders.filter(o => !isToday(o.created_at));
 
   // Scroll spy - update active category based on scroll position
   const handleScroll = useCallback(() => {
@@ -261,6 +276,11 @@ export default function CustomerPage() {
     return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
   }
 
+  function formatTimeShort(dateStr) {
+    const d = new Date(dateStr);
+    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  }
+
   if (loading) {
     return (
       <div className={styles.loading}>
@@ -301,6 +321,51 @@ export default function CustomerPage() {
     );
   }
 
+  // 渲染订单列表的通用函数
+  function renderOrderList(orders, emptyText) {
+    if (orders.length === 0) {
+      return (
+        <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px 0' }}>
+          <div style={{ fontSize: '36px', marginBottom: '8px', opacity: 0.5 }}>📋</div>
+          {emptyText}
+        </div>
+      );
+    }
+    return (
+      <div className={styles.historyList}>
+        {orders.map(order => (
+          <div key={order.id} className={styles.historyCard}>
+            <div className={styles.historyCardHeader}>
+              <span>订单 #{order.id} ({formatTime(order.created_at)})</span>
+              <span className={styles.historyCardStatus}>{STATUS_MAP[order.status] || order.status}</span>
+            </div>
+            <div className={styles.historyCardBody}>
+              {order.order_items?.map((item, i) => (
+                <div key={i} className={styles.historyCardItem}>
+                  <span>{item.name} × {item.quantity}</span>
+                  <span>{item.price * item.quantity} 饭票</span>
+                </div>
+              ))}
+              {order.remark && (
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                  备注: {order.remark}
+                </div>
+              )}
+              {order.admin_reply && (
+                <div style={{ fontSize: '12px', color: 'var(--primary)', marginTop: '6px', background: 'var(--primary-bg)', padding: '8px', borderRadius: '8px' }}>
+                  👨‍🍳 店长回复: {order.admin_reply}
+                </div>
+              )}
+            </div>
+            <div className={styles.historyCardTotal}>
+              合计: {order.total_price} 饭票
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className={styles.page}>
       {/* Header */}
@@ -308,12 +373,15 @@ export default function CustomerPage() {
         <div className={styles.headerLeft}>
           <h1 className={styles.logo}>🍜 美味餐厅</h1>
         </div>
-        <div className={styles.headerRight} style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
-          <span style={{fontSize: '12px', color: 'var(--text-secondary)'}}>{user.username}</span>
-          <button className={styles.historyBtn} onClick={() => setShowHistory(true)}>
+        <div className={styles.headerRight} style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
+          <span style={{fontSize: '12px', color: 'var(--text-secondary)'}}>👤 {user.username}</span>
+          <button className={styles.historyBtn} onClick={() => setShowTodayOrders(true)}>
             我的订单
           </button>
-          <button className={styles.historyBtn} onClick={handleLogout} style={{color: '#ff4d4f'}}>
+          <button className={styles.historyBtn} onClick={() => setShowHistory(true)}>
+            历史订单
+          </button>
+          <button className={styles.historyBtn} onClick={handleLogout} style={{color: 'var(--red)'}}>
             退出
           </button>
         </div>
@@ -346,41 +414,43 @@ export default function CustomerPage() {
               <h2 className={styles.sectionTitle}>
                 <span>{cat.icon}</span> {cat.name}
               </h2>
-              {(menuItems[cat.id] || []).map(item => (
-                <div key={item.id} className={styles.menuItem}>
-                  <div className={styles.menuItemImg}>
-                    <img
-                      src={item.image_url || '/images/placeholder.svg'}
-                      alt={item.name}
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className={styles.menuItemInfo}>
-                    <h3 className={styles.menuItemName}>{item.name}</h3>
-                    <p className={styles.menuItemDesc}>{item.description}</p>
-                    <div className={styles.menuItemBottom}>
-                      <span className={styles.menuItemPrice}>
-                        {item.price}<em> 饭票</em>
-                      </span>
-                      <div className={styles.qtyControls}>
-                        {cart[item.id] && (
-                          <>
-                            <button
-                              className={styles.qtyBtnMinus}
-                              onClick={() => removeItem(item.id)}
-                            >−</button>
-                            <span className={styles.qtyValue}>{cart[item.id].qty}</span>
-                          </>
-                        )}
-                        <button
-                          className={styles.qtyBtnPlus}
-                          onClick={() => addItem(item)}
-                        >+</button>
+              <div className={styles.menuList}>
+                {(menuItems[cat.id] || []).map((item, idx) => (
+                  <div key={item.id} className={styles.menuItem}>
+                    <div className={styles.menuItemImg}>
+                      <img
+                        src={item.image_url || '/images/placeholder.svg'}
+                        alt={item.name}
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className={styles.menuItemInfo}>
+                      <h3 className={styles.menuItemName}>{item.name}</h3>
+                      <p className={styles.menuItemDesc}>{item.description}</p>
+                      <div className={styles.menuItemBottom}>
+                        <span className={styles.menuItemPrice}>
+                          {item.price}<em> 饭票</em>
+                        </span>
+                        <div className={styles.qtyControls}>
+                          {cart[item.id] && (
+                            <>
+                              <button
+                                className={styles.qtyBtnMinus}
+                                onClick={() => removeItem(item.id)}
+                              >−</button>
+                              <span className={styles.qtyValue}>{cart[item.id].qty}</span>
+                            </>
+                          )}
+                          <button
+                            className={styles.qtyBtnPlus}
+                            onClick={() => addItem(item)}
+                          >+</button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </section>
           ))}
           <div className={styles.menuPadding}></div>
@@ -509,55 +579,52 @@ export default function CustomerPage() {
         </div>
       )}
 
-      {/* Order History Overlay */}
-      {showHistory && (
-        <div className={styles.overlay} onClick={() => setShowHistory(false)}>
+      {/* 今日订单 (我的订单) */}
+      {showTodayOrders && (
+        <div className={styles.overlay} onClick={() => setShowTodayOrders(false)}>
           <div className={styles.orderPanel} onClick={e => e.stopPropagation()}>
             <div className={styles.orderHeader}>
-              <h3>我的订单</h3>
-              <button className={styles.orderClose} onClick={() => setShowHistory(false)}>✕</button>
+              <h3>📋 今日订单</h3>
+              <button className={styles.orderClose} onClick={() => setShowTodayOrders(false)}>✕</button>
             </div>
             <div className={styles.orderBody}>
               {myOrderIds.length === 0 ? (
-                <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px 0' }}>
-                  暂无点菜记录
+                <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px 0' }}>
+                  <div style={{ fontSize: '36px', marginBottom: '8px', opacity: 0.5 }}>📋</div>
+                  今天还没有点过菜哦
                 </div>
               ) : loadingHistory ? (
                 <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px 0' }}>
                   加载中...
                 </div>
               ) : (
-                <div className={styles.historyList}>
-                  {myOrders.map(order => (
-                    <div key={order.id} className={styles.historyCard}>
-                      <div className={styles.historyCardHeader}>
-                        <span>订单 #{order.id} ({formatTime(order.created_at)})</span>
-                        <span className={styles.historyCardStatus}>{STATUS_MAP[order.status] || order.status}</span>
-                      </div>
-                      <div className={styles.historyCardBody}>
-                        {order.order_items?.map((item, i) => (
-                          <div key={i} className={styles.historyCardItem}>
-                            <span>{item.name} × {item.quantity}</span>
-                            <span>{item.price * item.quantity} 饭票</span>
-                          </div>
-                        ))}
-                        {order.remark && (
-                          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                            备注: {order.remark}
-                          </div>
-                        )}
-                        {order.admin_reply && (
-                          <div style={{ fontSize: '12px', color: '#ff6b35', marginTop: '6px', background: '#fff0e6', padding: '6px', borderRadius: '4px' }}>
-                            👨‍🍳 店长回复: {order.admin_reply}
-                          </div>
-                        )}
-                      </div>
-                      <div className={styles.historyCardTotal}>
-                        合计: {order.total_price} 饭票
-                      </div>
-                    </div>
-                  ))}
+                renderOrderList(todayOrders, '今天还没有点过菜哦')
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 历史订单 */}
+      {showHistory && (
+        <div className={styles.overlay} onClick={() => setShowHistory(false)}>
+          <div className={styles.orderPanel} onClick={e => e.stopPropagation()}>
+            <div className={styles.orderHeader}>
+              <h3>📜 历史订单</h3>
+              <button className={styles.orderClose} onClick={() => setShowHistory(false)}>✕</button>
+            </div>
+            <div className={styles.orderBody}>
+              {myOrderIds.length === 0 ? (
+                <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px 0' }}>
+                  <div style={{ fontSize: '36px', marginBottom: '8px', opacity: 0.5 }}>📜</div>
+                  暂无历史订单
                 </div>
+              ) : loadingHistory ? (
+                <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px 0' }}>
+                  加载中...
+                </div>
+              ) : (
+                renderOrderList(myOrders, '暂无历史订单记录')
               )}
             </div>
           </div>

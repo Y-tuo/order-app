@@ -123,17 +123,34 @@ export async function DELETE(request) {
     await requireAdmin();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const ids = searchParams.get('ids'); // 批量删除: 逗号分隔的ID列表
     const type = searchParams.get('type');
 
     const table = type === 'category' ? 'categories' : 'menu_items';
 
-    const { error } = await supabaseAdmin
-      .from(table)
-      .delete()
-      .eq('id', id);
+    if (ids) {
+      // 批量删除
+      const idList = ids.split(',').map(Number).filter(n => !isNaN(n));
+      if (idList.length === 0) {
+        return NextResponse.json({ error: '无效的ID列表' }, { status: 400 });
+      }
+      const { error } = await supabaseAdmin
+        .from(table)
+        .delete()
+        .in('id', idList);
 
-    if (error) throw error;
-    return NextResponse.json({ success: true });
+      if (error) throw error;
+      return NextResponse.json({ success: true, deleted: idList.length });
+    } else {
+      // 单个删除
+      const { error } = await supabaseAdmin
+        .from(table)
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return NextResponse.json({ success: true });
+    }
   } catch (err) {
     if (err.message === 'Unauthorized') {
       return NextResponse.json({ error: '未登录' }, { status: 401 });

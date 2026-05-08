@@ -1,11 +1,17 @@
 .page {
-  padding: 20px;
+  padding: 28px;
+  animation: fadeIn 0.3s ease;
 }
 
 .title {
   font-size: 24px;
+  font-weight: 800;
   color: var(--text-primary);
-  margin-bottom: 24px;
+  margin-bottom: 28px;
+  background: linear-gradient(135deg, var(--text-primary), var(--primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .content {
@@ -18,40 +24,57 @@
   .content {
     flex-direction: column;
   }
+  .page { padding: 16px; }
 }
 
 .formCard, .listCard {
-  background: var(--white);
-  padding: 24px;
+  background: var(--gradient-card);
+  padding: 28px;
   border-radius: var(--radius-lg);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
   flex: 1;
+  transition: all 0.25s;
+}
+
+.formCard:hover, .listCard:hover {
+  box-shadow: var(--shadow-md);
 }
 
 .formCard h2, .listCard h2 {
-  margin-bottom: 20px;
+  margin-bottom: 22px;
   font-size: 18px;
+  font-weight: 700;
   border-bottom: 1px solid var(--border-light);
-  padding-bottom: 10px;
+  padding-bottom: 12px;
 }
 
 .formGroup {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .formGroup label {
   display: block;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
   margin-bottom: 6px;
+  font-weight: 600;
 }
 
 .formGroup input {
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
+  padding: 11px 14px;
+  border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   font-size: 14px;
+  outline: none;
+  transition: all 0.25s;
+  background: var(--white);
+}
+
+.formGroup input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .formActions {
@@ -61,33 +84,54 @@
 }
 
 .btnPrimary, .btnSecondary, .btnEdit, .btnDelete {
-  padding: 8px 16px;
+  padding: 9px 18px;
   border-radius: var(--radius-sm);
   font-size: 14px;
   cursor: pointer;
   border: none;
+  font-weight: 600;
+  transition: all 0.25s;
 }
 
 .btnPrimary {
-  background: var(--primary);
+  background: var(--gradient-primary);
   color: var(--white);
+  box-shadow: var(--shadow-primary);
+}
+
+.btnPrimary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
 }
 
 .btnSecondary {
   background: var(--bg);
   color: var(--text-primary);
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border);
+}
+
+.btnSecondary:hover {
+  background: var(--bg-hover);
 }
 
 .btnEdit {
-  background: #1890ff;
-  color: #fff;
-  margin-right: 8px;
+  background: var(--blue-bg);
+  color: var(--blue);
+}
+
+.btnEdit:hover {
+  background: var(--blue);
+  color: var(--white);
 }
 
 .btnDelete {
-  background: #ff4d4f;
-  color: #fff;
+  background: var(--red-bg);
+  color: var(--red);
+}
+
+.btnDelete:hover {
+  background: var(--red);
+  color: var(--white);
 }
 
 .table {
@@ -96,7 +140,7 @@
 }
 
 .table th, .table td {
-  padding: 12px;
+  padding: 14px;
   text-align: left;
   border-bottom: 1px solid var(--border-light);
   font-size: 14px;
@@ -104,5 +148,16 @@
 
 .table th {
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table tr {
+  transition: all 0.2s;
+}
+
+.table tr:hover {
+  background: var(--bg);
 }
