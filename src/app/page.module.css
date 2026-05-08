@@ -458,11 +458,8 @@
   background: var(--white);
   border-top: 1px solid var(--border-light);
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05);
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
   z-index: 100;
+  flex-shrink: 0;
 }
 
 .cartLeft {
@@ -974,3 +971,112 @@
   font-size: 13px;
   text-align: left;
 }
+
+/* ============ Ingredients Visuals ============ */
+.ingGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.ingGroupTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ingGroupTitle span {
+  font-size: 20px;
+}
+
+.ingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.ingCard {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s;
+}
+
+.ingCard:active {
+  transform: scale(0.98);
+}
+
+.ingCardMain {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.ingName {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 15px;
+}
+
+.ingQty {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--primary-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.ingRemark {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  background: var(--bg);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.ingCardFooter {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ingTime {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.ingActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.ingActions button {
+  background: var(--bg);
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.ingActions .ingDel {
+  color: var(--red);
+  background: var(--red-bg);
+}
+

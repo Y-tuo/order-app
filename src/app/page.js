@@ -432,6 +432,24 @@ export default function CustomerPage() {
     );
   }
 
+  // Group ingredients by category
+  const groupedIngredients = ingredients.reduce((acc, ing) => {
+    if (!acc[ing.category]) acc[ing.category] = [];
+    acc[ing.category].push(ing);
+    return acc;
+  }, {});
+
+  const CATEGORY_ICONS = {
+    '蔬菜': '🥬',
+    '肉类': '🥩',
+    '海鲜': '🦞',
+    '蛋奶': '🥚',
+    '调料': '🧂',
+    '主食': '🍚',
+    '水果': '🍎',
+    '其他': '📦'
+  };
+
   const isAdmin = user.role === 'admin';
 
   return (
@@ -562,28 +580,31 @@ export default function CustomerPage() {
                       家里还没有记录食材哦
                     </div>
                   ) : (
-                    <div className={styles.historyList}>
-                      {ingredients.map(ing => (
-                        <div key={ing.id} className={styles.historyCard}>
-                          <div className={styles.historyCardHeader}>
-                            <span className={styles.historyCardId}>{ing.name} <span style={{ fontWeight: 'normal', color: 'var(--text-secondary)', marginLeft: '4px' }}>({ing.category})</span></span>
-                            <span className={styles.historyCardStatus}>{ing.quantity}</span>
-                          </div>
-                          <div className={styles.historyCardBody}>
-                            {ing.remark && (
-                              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                                备注: {ing.remark}
-                              </div>
-                            )}
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
-                              <span>更新于: {formatTime(ing.updated_at)} by {ing.last_updated_by}</span>
-                              {isAdmin && (
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                  <button className={styles.historyBtn} onClick={() => setIngredientForm(ing)}>编辑</button>
-                                  <button className={styles.historyBtn} style={{ color: 'var(--red)', borderColor: 'var(--border)' }} onClick={() => deleteIngredient(ing.id)}>删除</button>
+                    <div className={styles.ingGroups}>
+                      {Object.keys(groupedIngredients).map(cat => (
+                        <div key={cat} className={styles.ingGroup}>
+                          <h3 className={styles.ingGroupTitle}>
+                            <span>{CATEGORY_ICONS[cat] || '📦'}</span> {cat} ({groupedIngredients[cat].length})
+                          </h3>
+                          <div className={styles.ingGrid}>
+                            {groupedIngredients[cat].map(ing => (
+                              <div key={ing.id} className={styles.ingCard}>
+                                <div className={styles.ingCardMain}>
+                                  <span className={styles.ingName}>{ing.name}</span>
+                                  <span className={styles.ingQty}>{ing.quantity || '-'}</span>
                                 </div>
-                              )}
-                            </div>
+                                {ing.remark && <div className={styles.ingRemark}>{ing.remark}</div>}
+                                <div className={styles.ingCardFooter}>
+                                  <span className={styles.ingTime}>{formatTime(ing.updated_at)} by {ing.last_updated_by}</span>
+                                  {isAdmin && (
+                                    <div className={styles.ingActions}>
+                                      <button onClick={() => setIngredientForm(ing)}>编辑</button>
+                                      <button className={styles.ingDel} onClick={() => deleteIngredient(ing.id)}>删除</button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       ))}
