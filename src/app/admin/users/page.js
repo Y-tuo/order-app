@@ -7,7 +7,7 @@ import styles from './users.module.css';
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [formData, setFormData] = useState({ username: '', password: '', role: 'user' });
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState({});
   const router = useRouter();
@@ -44,7 +44,7 @@ export default function UsersPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setFormData({ username: '', password: '' });
+        setFormData({ username: '', password: '', role: 'user' });
         setIsEditing(false);
         loadUsers();
       } else {
@@ -101,10 +101,22 @@ export default function UsersPage() {
                 required
               />
             </div>
+            <div className={styles.formGroup}>
+              <label>角色权限</label>
+              <select
+                value={formData.role}
+                onChange={e => setFormData({...formData, role: e.target.value})}
+                required
+                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ddd', outline: 'none' }}
+              >
+                <option value="user">普通成员 (不可改食材)</option>
+                <option value="admin">家庭管理员 (可改食材)</option>
+              </select>
+            </div>
             <div className={styles.formActions}>
               <button type="submit" className={styles.btnPrimary}>保存</button>
               {isEditing && (
-                <button type="button" className={styles.btnSecondary} onClick={() => { setIsEditing(false); setFormData({ username: '', password: '' }); }}>取消</button>
+                <button type="button" className={styles.btnSecondary} onClick={() => { setIsEditing(false); setFormData({ username: '', password: '', role: 'user' }); }}>取消</button>
               )}
             </div>
           </form>
@@ -119,6 +131,7 @@ export default function UsersPage() {
               <thead>
                 <tr>
                   <th>账号</th>
+                  <th>角色</th>
                   <th>密码</th>
                   <th>创建时间</th>
                   <th>操作</th>
@@ -128,6 +141,15 @@ export default function UsersPage() {
                 {users.map(user => (
                   <tr key={user.id}>
                     <td>{user.username}</td>
+                    <td>
+                      <span style={{ 
+                        background: user.role === 'admin' ? '#FEF3C7' : '#F1F5F9',
+                        color: user.role === 'admin' ? '#D97706' : '#64748B',
+                        padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' 
+                      }}>
+                        {user.role === 'admin' ? '管理员' : '成员'}
+                      </span>
+                    </td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ fontFamily: showPassword[user.id] ? 'inherit' : 'monospace', fontSize: showPassword[user.id] ? '14px' : '18px', display: 'inline-block', width: '80px' }}>
@@ -144,7 +166,7 @@ export default function UsersPage() {
                     </td>
                     <td>{new Date(user.created_at).toLocaleDateString()}</td>
                     <td>
-                      <button className={styles.btnEdit} onClick={() => { setIsEditing(true); setFormData({ id: user.id, username: user.username, password: '' }); }}>改密</button>
+                      <button className={styles.btnEdit} onClick={() => { setIsEditing(true); setFormData({ id: user.id, username: user.username, password: '', role: user.role || 'user' }); }}>编辑</button>
                       <button className={styles.btnDelete} onClick={() => handleDelete(user.id)}>删除</button>
                     </td>
                   </tr>

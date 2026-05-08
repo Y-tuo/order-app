@@ -139,7 +139,12 @@ export async function DELETE(request) {
         .delete()
         .in('id', idList);
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23503') {
+          return NextResponse.json({ error: '选中菜品已被历史订单引用，无法删除' }, { status: 400 });
+        }
+        throw error;
+      }
       return NextResponse.json({ success: true, deleted: idList.length });
     } else {
       // 单个删除
@@ -148,7 +153,12 @@ export async function DELETE(request) {
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23503') {
+          return NextResponse.json({ error: '该菜品已被历史订单引用，无法删除' }, { status: 400 });
+        }
+        throw error;
+      }
       return NextResponse.json({ success: true });
     }
   } catch (err) {

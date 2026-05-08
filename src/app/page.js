@@ -18,9 +18,11 @@ export default function CustomerPage() {
   const [showCart, setShowCart] = useState(false);
   const [showOrder, setShowOrder] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [showTodayOrders, setShowTodayOrders] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
-  const [showIngredients, setShowIngredients] = useState(false);
+  
+  // Navigation
+  const [activeTab, setActiveTab] = useState('menu'); // 'menu', 'orders', 'ingredients', 'profile'
+  const [ordersTab, setOrdersTab] = useState('today'); // 'today', 'history'
+  
   const [ingredients, setIngredients] = useState([]);
   const [loadingIngredients, setLoadingIngredients] = useState(false);
   const [ingredientForm, setIngredientForm] = useState(null);
@@ -155,16 +157,16 @@ export default function CustomerPage() {
   }, []);
 
   useEffect(() => {
-    if (showTodayOrders || showHistory) {
+    if (activeTab === 'orders') {
       loadHistory();
     }
-  }, [showTodayOrders, showHistory, loadHistory]);
+  }, [activeTab, loadHistory]);
 
   useEffect(() => {
-    if (showIngredients) {
+    if (activeTab === 'ingredients') {
       loadIngredients();
     }
-  }, [showIngredients, loadIngredients]);
+  }, [activeTab, loadIngredients]);
 
   async function saveIngredient(e) {
     e.preventDefault();
@@ -222,6 +224,7 @@ export default function CustomerPage() {
 
   // Scroll spy - update active category based on scroll position
   const handleScroll = useCallback(() => {
+    if (activeTab !== 'menu') return;
     if (isScrolling.current) return;
     const container = menuRef.current;
     if (!container) return;
@@ -239,15 +242,15 @@ export default function CustomerPage() {
     if (current && current !== activeCategory) {
       setActiveCategory(current);
     }
-  }, [categories, activeCategory]);
+  }, [categories, activeCategory, activeTab]);
 
   useEffect(() => {
     const container = menuRef.current;
-    if (container) {
+    if (container && activeTab === 'menu') {
       container.addEventListener('scroll', handleScroll, { passive: true });
       return () => container.removeEventListener('scroll', handleScroll);
     }
-  }, [handleScroll]);
+  }, [handleScroll, activeTab]);
 
   // Click category -> scroll to section
   function scrollToCategory(catId) {
@@ -344,11 +347,6 @@ export default function CustomerPage() {
     return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
   }
 
-  function formatTimeShort(dateStr) {
-    const d = new Date(dateStr);
-    return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
-  }
-
   if (loading) {
     return (
       <div className={styles.loading}>
@@ -393,8 +391,8 @@ export default function CustomerPage() {
   function renderOrderList(orders, emptyText) {
     if (orders.length === 0) {
       return (
-        <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px 0' }}>
-          <div style={{ fontSize: '36px', marginBottom: '8px', opacity: 0.5 }}>📋</div>
+        <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '60px 0' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.5 }}>📋</div>
           {emptyText}
         </div>
       );
@@ -434,6 +432,8 @@ export default function CustomerPage() {
     );
   }
 
+  const isAdmin = user.role === 'admin';
+
   return (
     <div className={styles.page}>
       {/* Header */}
@@ -441,121 +441,289 @@ export default function CustomerPage() {
         <div className={styles.headerLeft}>
           <h1 className={styles.logo}>🍜 美味餐厅</h1>
         </div>
-        <div className={styles.headerRight} style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
-          <span style={{fontSize: '12px', color: 'var(--text-secondary)'}}>👤 {user.username}</span>
-          <button className={styles.historyBtn} onClick={() => setShowIngredients(true)}>
-            家庭食材
-          </button>
-          <button className={styles.historyBtn} onClick={() => setShowTodayOrders(true)}>
-            我的订单
-          </button>
-          <button className={styles.historyBtn} onClick={() => setShowHistory(true)}>
-            历史订单
-          </button>
-          <button className={styles.historyBtn} onClick={handleLogout} style={{color: 'var(--red)'}}>
-            退出
-          </button>
-        </div>
       </header>
 
-      {/* Main Content: Sidebar + Menu */}
+      {/* Main Content Area */}
       <div className={styles.main}>
-        {/* Left Category Sidebar */}
-        <aside className={styles.sidebar}>
-          {categories.map(cat => (
-            <button
-              key={cat.id}
-              className={`${styles.sidebarItem} ${activeCategory === cat.id ? styles.sidebarActive : ''}`}
-              onClick={() => scrollToCategory(cat.id)}
-            >
-              <span className={styles.sidebarIcon}>{cat.icon}</span>
-              <span className={styles.sidebarName}>{cat.name}</span>
-            </button>
-          ))}
-        </aside>
-
-        {/* Right Menu List */}
-        <div className={styles.menuContainer} ref={menuRef}>
-          {categories.map(cat => (
-            <section
-              key={cat.id}
-              ref={el => { sectionRefs.current[cat.id] = el; }}
-              className={styles.menuSection}
-            >
-              <h2 className={styles.sectionTitle}>
-                <span>{cat.icon}</span> {cat.name}
-              </h2>
-              <div className={styles.menuList}>
-                {(menuItems[cat.id] || []).map((item, idx) => (
-                  <div key={item.id} className={styles.menuItem}>
-                    <div className={styles.menuItemImg}>
-                      <img
-                        src={item.image_url || '/images/placeholder.svg'}
-                        alt={item.name}
-                        loading="lazy"
-                      />
-                    </div>
-                    <div className={styles.menuItemInfo}>
-                      <h3 className={styles.menuItemName}>{item.name}</h3>
-                      <p className={styles.menuItemDesc}>{item.description}</p>
-                      <div className={styles.menuItemBottom}>
-                        <span className={styles.menuItemPrice}>
-                          {item.price}<em> 饭票</em>
-                        </span>
-                        <div className={styles.qtyControls}>
-                          {cart[item.id] && (
-                            <>
+        
+        {/* Tab 1: 点餐 */}
+        {activeTab === 'menu' && (
+          <>
+            <aside className={styles.sidebar}>
+              {categories.map(cat => (
+                <button
+                  key={cat.id}
+                  className={`${styles.sidebarItem} ${activeCategory === cat.id ? styles.sidebarActive : ''}`}
+                  onClick={() => scrollToCategory(cat.id)}
+                >
+                  <span className={styles.sidebarIcon}>{cat.icon}</span>
+                  <span className={styles.sidebarName}>{cat.name}</span>
+                </button>
+              ))}
+            </aside>
+            <div className={styles.menuContainer} ref={menuRef}>
+              {categories.map(cat => (
+                <section
+                  key={cat.id}
+                  ref={el => { sectionRefs.current[cat.id] = el; }}
+                  className={styles.menuSection}
+                >
+                  <h2 className={styles.sectionTitle}>
+                    <span>{cat.icon}</span> {cat.name}
+                  </h2>
+                  <div className={styles.menuList}>
+                    {(menuItems[cat.id] || []).map((item, idx) => (
+                      <div key={item.id} className={styles.menuItem}>
+                        <div className={styles.menuItemImg}>
+                          <img
+                            src={item.image_url || '/images/placeholder.svg'}
+                            alt={item.name}
+                            loading="lazy"
+                          />
+                        </div>
+                        <div className={styles.menuItemInfo}>
+                          <h3 className={styles.menuItemName}>{item.name}</h3>
+                          <p className={styles.menuItemDesc}>{item.description}</p>
+                          <div className={styles.menuItemBottom}>
+                            <span className={styles.menuItemPrice}>
+                              {item.price}<em> 饭票</em>
+                            </span>
+                            <div className={styles.qtyControls}>
+                              {cart[item.id] && (
+                                <>
+                                  <button
+                                    className={styles.qtyBtnMinus}
+                                    onClick={() => removeItem(item.id)}
+                                  >−</button>
+                                  <span className={styles.qtyValue}>{cart[item.id].qty}</span>
+                                </>
+                              )}
                               <button
-                                className={styles.qtyBtnMinus}
-                                onClick={() => removeItem(item.id)}
-                              >−</button>
-                              <span className={styles.qtyValue}>{cart[item.id].qty}</span>
-                            </>
-                          )}
-                          <button
-                            className={styles.qtyBtnPlus}
-                            onClick={() => addItem(item)}
-                          >+</button>
+                                className={styles.qtyBtnPlus}
+                                onClick={() => addItem(item)}
+                              >+</button>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </section>
-          ))}
-          <div className={styles.menuPadding}></div>
-        </div>
+                </section>
+              ))}
+              <div className={styles.menuPadding}></div>
+            </div>
+          </>
+        )}
+
+        {/* Tab 2: 订单 */}
+        {activeTab === 'orders' && (
+          <div className={styles.tabContent}>
+            <div className={styles.tabSwitcher}>
+              <button className={`${styles.switcherBtn} ${ordersTab === 'today' ? styles.switcherActive : ''}`} onClick={() => setOrdersTab('today')}>今日订单</button>
+              <button className={`${styles.switcherBtn} ${ordersTab === 'history' ? styles.switcherActive : ''}`} onClick={() => setOrdersTab('history')}>历史订单</button>
+            </div>
+            <div className={styles.tabBody}>
+              {loadingHistory ? (
+                <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px 0' }}>加载中...</div>
+              ) : ordersTab === 'today' ? (
+                renderOrderList(todayOrders, '今天还没有点过菜哦')
+              ) : (
+                renderOrderList(myOrders, '暂无历史订单记录')
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Tab 3: 食材 */}
+        {activeTab === 'ingredients' && (
+          <div className={styles.tabContent}>
+            <div className={styles.tabHeader}>
+              <h2 className={styles.tabTitle}>🥦 家庭食材</h2>
+            </div>
+            <div className={styles.tabBody}>
+              {!ingredientForm ? (
+                <>
+                  {isAdmin && (
+                    <div style={{ marginBottom: '16px' }}>
+                      <button 
+                        className={styles.orderConfirmBtn} 
+                        onClick={() => setIngredientForm({ name: '', quantity: '', category: '蔬菜', remark: '' })}
+                        style={{ padding: '12px' }}
+                      >
+                        + 添加新食材
+                      </button>
+                    </div>
+                  )}
+                  {loadingIngredients ? (
+                    <div style={{ textAlign: 'center', padding: '40px' }}>加载中...</div>
+                  ) : ingredients.length === 0 ? (
+                    <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '60px 0' }}>
+                      <div style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.5 }}>🥬</div>
+                      家里还没有记录食材哦
+                    </div>
+                  ) : (
+                    <div className={styles.historyList}>
+                      {ingredients.map(ing => (
+                        <div key={ing.id} className={styles.historyCard}>
+                          <div className={styles.historyCardHeader}>
+                            <span className={styles.historyCardId}>{ing.name} <span style={{ fontWeight: 'normal', color: 'var(--text-secondary)', marginLeft: '4px' }}>({ing.category})</span></span>
+                            <span className={styles.historyCardStatus}>{ing.quantity}</span>
+                          </div>
+                          <div className={styles.historyCardBody}>
+                            {ing.remark && (
+                              <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                                备注: {ing.remark}
+                              </div>
+                            )}
+                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
+                              <span>更新于: {formatTime(ing.updated_at)} by {ing.last_updated_by}</span>
+                              {isAdmin && (
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                  <button className={styles.historyBtn} onClick={() => setIngredientForm(ing)}>编辑</button>
+                                  <button className={styles.historyBtn} style={{ color: 'var(--red)', borderColor: 'var(--border)' }} onClick={() => deleteIngredient(ing.id)}>删除</button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <form onSubmit={saveIngredient} className={styles.formCard}>
+                  <div className={styles.formGroup}>
+                    <label>食材名称 *</label>
+                    <input 
+                      type="text" 
+                      required 
+                      value={ingredientForm.name} 
+                      onChange={e => setIngredientForm({...ingredientForm, name: e.target.value})} 
+                      placeholder="例如：西红柿、鸡蛋" 
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>数量</label>
+                    <input 
+                      type="text" 
+                      value={ingredientForm.quantity || ''} 
+                      onChange={e => setIngredientForm({...ingredientForm, quantity: e.target.value})} 
+                      placeholder="例如：3个、半斤" 
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>分类</label>
+                    <select 
+                      className={styles.selectInput}
+                      value={ingredientForm.category} 
+                      onChange={e => setIngredientForm({...ingredientForm, category: e.target.value})}
+                    >
+                      {INGREDIENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label>备注</label>
+                    <input 
+                      type="text" 
+                      value={ingredientForm.remark || ''} 
+                      onChange={e => setIngredientForm({...ingredientForm, remark: e.target.value})} 
+                      placeholder="例如：快过期了" 
+                    />
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+                    <button 
+                      type="button" 
+                      className={styles.cartSubmitBtn} 
+                      style={{ flex: 1 }} 
+                      onClick={() => setIngredientForm(null)}
+                    >
+                      取消
+                    </button>
+                    <button 
+                      type="submit" 
+                      className={styles.cartSubmitActive} 
+                      style={{ flex: 1, border: 'none', borderRadius: 'var(--radius-full)', color: 'white', fontWeight: 600 }}
+                      disabled={submitting}
+                    >
+                      {submitting ? '保存中...' : '保存'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Tab 4: 我的 */}
+        {activeTab === 'profile' && (
+          <div className={styles.tabContent}>
+            <div className={styles.profileHeader}>
+              <div className={styles.profileAvatar}>👤</div>
+              <h2>{user.username}</h2>
+              <p className={styles.profileRole}>
+                {isAdmin ? '🛡️ 家庭管理员' : '成员账号'}
+              </p>
+            </div>
+            <div className={styles.profileBody}>
+              <button className={styles.logoutBtn} onClick={handleLogout}>
+                退出登录
+              </button>
+            </div>
+          </div>
+        )}
+
       </div>
 
-      {/* Cart Bar */}
-      <div className={styles.cartBar}>
-        <div className={styles.cartLeft} onClick={() => totalCount > 0 && setShowCart(true)}>
-          <div className={styles.cartIconWrap}>
-            <span className={styles.cartIcon}>🛒</span>
-            {totalCount > 0 && (
-              <span className={styles.cartBadge}>{totalCount}</span>
-            )}
+      {/* Cart Bar (Only visible in menu tab) */}
+      {activeTab === 'menu' && (
+        <div className={styles.cartBar}>
+          <div className={styles.cartLeft} onClick={() => totalCount > 0 && setShowCart(true)}>
+            <div className={styles.cartIconWrap}>
+              <span className={styles.cartIcon}>🛒</span>
+              {totalCount > 0 && (
+                <span className={styles.cartBadge}>{totalCount}</span>
+              )}
+            </div>
+            <div className={styles.cartInfo}>
+              {totalCount > 0 ? (
+                <>
+                  <span className={styles.cartTotal}>{totalPrice.toFixed(0)} 饭票</span>
+                  <span className={styles.cartHint}>点击查看购物车</span>
+                </>
+              ) : (
+                <span className={styles.cartEmpty}>未选购商品</span>
+              )}
+            </div>
           </div>
-          <div className={styles.cartInfo}>
-            {totalCount > 0 ? (
-              <>
-                <span className={styles.cartTotal}>{totalPrice.toFixed(0)} 饭票</span>
-                <span className={styles.cartHint}>点击查看购物车</span>
-              </>
-            ) : (
-              <span className={styles.cartEmpty}>未选购商品</span>
-            )}
-          </div>
+          <button
+            className={`${styles.cartSubmitBtn} ${totalCount > 0 ? styles.cartSubmitActive : ''}`}
+            disabled={totalCount === 0}
+            onClick={() => { setShowCart(false); setShowOrder(true); }}
+          >
+            {totalCount > 0 ? `去结算` : '选好了'}
+          </button>
         </div>
-        <button
-          className={`${styles.cartSubmitBtn} ${totalCount > 0 ? styles.cartSubmitActive : ''}`}
-          disabled={totalCount === 0}
-          onClick={() => { setShowCart(false); setShowOrder(true); }}
-        >
-          {totalCount > 0 ? `去结算` : '选好了'}
+      )}
+
+      {/* Bottom Navigation */}
+      <nav className={styles.bottomNav}>
+        <button className={`${styles.navBtn} ${activeTab === 'menu' ? styles.navActive : ''}`} onClick={() => setActiveTab('menu')}>
+          <span className={styles.navIcon}>🍜</span>
+          <span>点餐</span>
         </button>
-      </div>
+        <button className={`${styles.navBtn} ${activeTab === 'orders' ? styles.navActive : ''}`} onClick={() => setActiveTab('orders')}>
+          <span className={styles.navIcon}>📋</span>
+          <span>订单</span>
+        </button>
+        <button className={`${styles.navBtn} ${activeTab === 'ingredients' ? styles.navActive : ''}`} onClick={() => setActiveTab('ingredients')}>
+          <span className={styles.navIcon}>🥦</span>
+          <span>食材</span>
+        </button>
+        <button className={`${styles.navBtn} ${activeTab === 'profile' ? styles.navActive : ''}`} onClick={() => setActiveTab('profile')}>
+          <span className={styles.navIcon}>👤</span>
+          <span>我的</span>
+        </button>
+      </nav>
 
       {/* Cart Panel Overlay */}
       {showCart && (
@@ -644,182 +812,12 @@ export default function CustomerPage() {
             <p className={styles.successOrderId}>订单号: #{orderId}</p>
             <button
               className={styles.successBtn}
-              onClick={() => setShowSuccess(false)}
-            >继续点菜</button>
+              onClick={() => { setShowSuccess(false); setActiveTab('orders'); setOrdersTab('today'); }}
+            >查看订单</button>
           </div>
         </div>
       )}
 
-      {/* 今日订单 (我的订单) */}
-      {showTodayOrders && (
-        <div className={styles.overlay} onClick={() => setShowTodayOrders(false)}>
-          <div className={styles.orderPanel} onClick={e => e.stopPropagation()}>
-            <div className={styles.orderHeader}>
-              <h3>📋 今日订单</h3>
-              <button className={styles.orderClose} onClick={() => setShowTodayOrders(false)}>✕</button>
-            </div>
-            <div className={styles.orderBody}>
-              {myOrderIds.length === 0 ? (
-                <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px 0' }}>
-                  <div style={{ fontSize: '36px', marginBottom: '8px', opacity: 0.5 }}>📋</div>
-                  今天还没有点过菜哦
-                </div>
-              ) : loadingHistory ? (
-                <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px 0' }}>
-                  加载中...
-                </div>
-              ) : (
-                renderOrderList(todayOrders, '今天还没有点过菜哦')
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 历史订单 */}
-      {showHistory && (
-        <div className={styles.overlay} onClick={() => setShowHistory(false)}>
-          <div className={styles.orderPanel} onClick={e => e.stopPropagation()}>
-            <div className={styles.orderHeader}>
-              <h3>📜 历史订单</h3>
-              <button className={styles.orderClose} onClick={() => setShowHistory(false)}>✕</button>
-            </div>
-            <div className={styles.orderBody}>
-              {myOrderIds.length === 0 ? (
-                <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px 0' }}>
-                  <div style={{ fontSize: '36px', marginBottom: '8px', opacity: 0.5 }}>📜</div>
-                  暂无历史订单
-                </div>
-              ) : loadingHistory ? (
-                <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px 0' }}>
-                  加载中...
-                </div>
-              ) : (
-                renderOrderList(myOrders, '暂无历史订单记录')
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 家庭食材管理 */}
-      {showIngredients && (
-        <div className={styles.overlay} onClick={() => setShowIngredients(false)}>
-          <div className={styles.orderPanel} onClick={e => e.stopPropagation()}>
-            <div className={styles.orderHeader}>
-              <h3>🥦 家庭食材</h3>
-              <button className={styles.orderClose} onClick={() => setShowIngredients(false)}>✕</button>
-            </div>
-            <div className={styles.orderBody}>
-              {!ingredientForm ? (
-                <>
-                  <div style={{ marginBottom: '16px' }}>
-                    <button 
-                      className={styles.orderConfirmBtn} 
-                      onClick={() => setIngredientForm({ name: '', quantity: '', category: '蔬菜', remark: '' })}
-                      style={{ padding: '10px' }}
-                    >
-                      + 添加新食材
-                    </button>
-                  </div>
-                  {loadingIngredients ? (
-                    <div style={{ textAlign: 'center', padding: '20px' }}>加载中...</div>
-                  ) : ingredients.length === 0 ? (
-                    <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '40px 0' }}>
-                      <div style={{ fontSize: '36px', marginBottom: '8px', opacity: 0.5 }}>🥬</div>
-                      家里还没有记录食材哦
-                    </div>
-                  ) : (
-                    <div className={styles.historyList}>
-                      {ingredients.map(ing => (
-                        <div key={ing.id} className={styles.historyCard}>
-                          <div className={styles.historyCardHeader}>
-                            <span className={styles.historyCardId}>{ing.name} <span style={{ fontWeight: 'normal', color: 'var(--text-secondary)', marginLeft: '4px' }}>({ing.category})</span></span>
-                            <span className={styles.historyCardStatus}>{ing.quantity}</span>
-                          </div>
-                          <div className={styles.historyCardBody}>
-                            {ing.remark && (
-                              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                                备注: {ing.remark}
-                              </div>
-                            )}
-                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
-                              <span>更新于: {formatTime(ing.updated_at)} by {ing.last_updated_by}</span>
-                              <div style={{ display: 'flex', gap: '8px' }}>
-                                <button className={styles.historyBtn} onClick={() => setIngredientForm(ing)}>编辑</button>
-                                <button className={styles.historyBtn} style={{ color: 'var(--red)', borderColor: 'var(--border)' }} onClick={() => deleteIngredient(ing.id)}>删除</button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <form onSubmit={saveIngredient}>
-                  <div className={styles.formGroup}>
-                    <label>食材名称 *</label>
-                    <input 
-                      type="text" 
-                      required 
-                      value={ingredientForm.name} 
-                      onChange={e => setIngredientForm({...ingredientForm, name: e.target.value})} 
-                      placeholder="例如：西红柿、鸡蛋" 
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label>数量</label>
-                    <input 
-                      type="text" 
-                      value={ingredientForm.quantity || ''} 
-                      onChange={e => setIngredientForm({...ingredientForm, quantity: e.target.value})} 
-                      placeholder="例如：3个、半斤" 
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label>分类</label>
-                    <select 
-                      className={styles.selectInput}
-                      value={ingredientForm.category} 
-                      onChange={e => setIngredientForm({...ingredientForm, category: e.target.value})}
-                    >
-                      {INGREDIENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label>备注</label>
-                    <input 
-                      type="text" 
-                      value={ingredientForm.remark || ''} 
-                      onChange={e => setIngredientForm({...ingredientForm, remark: e.target.value})} 
-                      placeholder="例如：快过期了" 
-                    />
-                  </div>
-                  <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-                    <button 
-                      type="button" 
-                      className={styles.cartSubmitBtn} 
-                      style={{ flex: 1 }} 
-                      onClick={() => setIngredientForm(null)}
-                    >
-                      取消
-                    </button>
-                    <button 
-                      type="submit" 
-                      className={styles.cartSubmitActive} 
-                      style={{ flex: 1, border: 'none', borderRadius: 'var(--radius-full)', color: 'white', fontWeight: 600 }}
-                      disabled={submitting}
-                    >
-                      {submitting ? '保存中...' : '保存'}
-                    </button>
-                  </div>
-                </form>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

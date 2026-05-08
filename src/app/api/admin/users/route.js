@@ -9,7 +9,7 @@ export async function GET(request) {
     await requireAdmin();
     const { data: users, error } = await supabaseAdmin
       .from('customers')
-      .select('id, username, password, created_at')
+      .select('id, username, password, role, created_at')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -23,7 +23,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     await requireAdmin();
-    const { username, password } = await request.json();
+    const { username, password, role } = await request.json();
     
     if (!username || !password) {
       return NextResponse.json({ error: '请填写账号和密码' }, { status: 400 });
@@ -31,7 +31,7 @@ export async function POST(request) {
 
     const { error } = await supabaseAdmin
       .from('customers')
-      .insert({ username, password });
+      .insert({ username, password, role: role || 'user' });
 
     if (error) {
       if (error.code === '23505') {
@@ -50,15 +50,19 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     await requireAdmin();
-    const { id, password } = await request.json();
+    const { id, password, role } = await request.json();
     
-    if (!password) {
-      return NextResponse.json({ error: '密码不能为空' }, { status: 400 });
+    const updateData = {};
+    if (password) updateData.password = password;
+    if (role) updateData.role = role;
+
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json({ error: '没有需要修改的内容' }, { status: 400 });
     }
 
     const { error } = await supabaseAdmin
       .from('customers')
-      .update({ password })
+      .update(updateData)
       .eq('id', id);
 
     if (error) throw error;

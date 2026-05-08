@@ -29,10 +29,10 @@ export async function POST(request) {
     }
 
     // Generate JWT
-    const token = signToken({ sub: user.id, username: user.username, role: 'customer' });
+    const token = signToken({ sub: user.id, username: user.username, role: user.role || 'user' });
 
     // Set HTTP-only cookie
-    const response = NextResponse.json({ success: true, user: { id: user.id, username: user.username } });
+    const response = NextResponse.json({ success: true, user: { id: user.id, username: user.username, role: user.role || 'user' } });
     response.cookies.set('customer_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

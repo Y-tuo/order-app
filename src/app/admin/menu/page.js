@@ -87,10 +87,15 @@ export default function MenuPage() {
   async function deleteItem(id) {
     if (!confirm('确定删除？')) return;
     try {
-      await fetch(`/api/admin/menu?id=${id}&type=item`, { method: 'DELETE' });
-      loadMenu();
+      const res = await fetch(`/api/admin/menu?id=${id}&type=item`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        loadMenu();
+      } else {
+        alert(data.error || '删除失败');
+      }
     } catch (err) {
-      alert('删除失败');
+      alert('网络错误');
     }
   }
 
@@ -107,10 +112,10 @@ export default function MenuPage() {
         setBatchMode(false);
         loadMenu();
       } else {
-        alert('批量删除失败');
+        alert(data.error || data.message || '批量删除失败');
       }
     } catch (err) {
-      alert('批量删除失败');
+      alert('网络错误');
     }
   }
 
@@ -159,12 +164,17 @@ export default function MenuPage() {
   }
 
   async function deleteCategory(id) {
-    if (!confirm('删除分类将同时删除该分类下的所有菜品，确定？')) return;
+    if (!confirm('删除分类将同时删除该分类下的所有菜品，确定吗？')) return;
     try {
-      await fetch(`/api/admin/menu?id=${id}&type=category`, { method: 'DELETE' });
-      loadMenu();
+      const res = await fetch(`/api/admin/menu?id=${id}&type=category`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        loadMenu();
+      } else {
+        alert(data.error || data.message || '删除失败');
+      }
     } catch (err) {
-      alert('删除失败');
+      alert('网络错误');
     }
   }
 

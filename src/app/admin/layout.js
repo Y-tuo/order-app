@@ -9,6 +9,7 @@ const navItems = [
   { href: '/admin/menu', icon: '📦', label: '菜品管理' },
   { href: '/admin/history', icon: '📊', label: '历史统计' },
   { href: '/admin/users', icon: '👥', label: '账号管理' },
+  { href: '/admin/ingredients', icon: '🥦', label: '食材管理' },
 ];
 
 export default function AdminLayout({ children }) {

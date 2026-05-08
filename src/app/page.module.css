@@ -39,7 +39,7 @@
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 14px 16px;
   background: var(--white);
   border-bottom: 1px solid var(--border-light);
@@ -57,20 +57,163 @@
   gap: 4px;
 }
 
-.headerTag {
-  font-size: 12px;
-  color: var(--primary);
-  background: var(--primary-bg);
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-  font-weight: 500;
-}
-
-/* ============ Main: Sidebar + Menu ============ */
+/* ============ Main Area ============ */
 .main {
   display: flex;
   flex: 1;
   overflow: hidden;
+  position: relative;
+}
+
+/* ============ Tab Content Wrapper ============ */
+.tabContent {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow-y: auto;
+}
+
+.tabHeader {
+  padding: 16px 20px 8px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.tabTitle {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.tabSwitcher {
+  display: flex;
+  padding: 12px 20px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border-light);
+  gap: 20px;
+}
+
+.switcherBtn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: var(--text-muted);
+  font-weight: 600;
+  padding-bottom: 6px;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+
+.switcherActive {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.tabBody {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+/* ============ Profile Tab ============ */
+.profileHeader {
+  background: var(--white);
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.profileAvatar {
+  font-size: 64px;
+  margin-bottom: 12px;
+  background: var(--bg);
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  box-shadow: var(--shadow-sm);
+}
+
+.profileHeader h2 {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.profileRole {
+  font-size: 14px;
+  color: var(--text-secondary);
+  background: var(--bg-hover);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+}
+
+.profileBody {
+  padding: 30px 20px;
+}
+
+.logoutBtn {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--red);
+  background: var(--red-bg);
+  color: var(--red);
+  font-size: 16px;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+
+.logoutBtn:active {
+  transform: scale(0.98);
+}
+
+/* ============ Bottom Nav ============ */
+.bottomNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: var(--white);
+  border-top: 1px solid var(--border-light);
+  padding: 8px 0;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  flex-shrink: 0;
+  z-index: 200;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+}
+
+.navBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  transition: color 0.2s;
+  padding: 4px 16px;
+}
+
+.navIcon {
+  font-size: 22px;
+  transition: transform 0.2s;
+}
+
+.navActive {
+  color: var(--primary);
+}
+
+.navActive .navIcon {
+  transform: translateY(-2px);
 }
 
 /* ============ Left Sidebar ============ */
@@ -172,10 +315,6 @@
 }
 
 /* ============ Menu Item - Divider-based layout ============ */
-.menuList {
-  /* no card wrapper, items are separated by dividers */
-}
-
 .menuItem {
   display: flex;
   gap: 12px;
@@ -239,19 +378,6 @@
   margin-top: 3px;
 }
 
-.menuItemSales {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
-.menuItemBottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 8px;
-}
-
 .menuItemPrice {
   font-size: 19px;
   font-weight: 800;
@@ -262,6 +388,13 @@
   font-size: 12px;
   font-style: normal;
   font-weight: 500;
+}
+
+.menuItemBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
 }
 
 /* ============ Quantity Controls ============ */
@@ -322,11 +455,13 @@
   display: flex;
   align-items: center;
   padding: 10px 14px;
-  padding-bottom: calc(10px + var(--safe-bottom));
   background: var(--white);
   border-top: 1px solid var(--border-light);
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.05);
-  flex-shrink: 0;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
 }
 
@@ -501,7 +636,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 22px;
-  padding-bottom: calc(16px + var(--safe-bottom));
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--border);
 }
 
@@ -529,10 +664,6 @@
   transition: all 0.2s;
 }
 
-.cartPanelSubmit:active {
-  transform: scale(0.96);
-}
-
 /* ============ Order Panel ============ */
 .orderPanel {
   width: 100%;
@@ -543,6 +674,8 @@
   overflow: hidden;
   animation: slideUp 0.3s ease;
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
 }
 
 .orderHeader {
@@ -572,15 +705,10 @@
   transition: all 0.2s;
 }
 
-.orderClose:hover {
-  background: var(--red-bg);
-  color: var(--red);
-}
-
 .orderBody {
   padding: 22px;
   overflow-y: auto;
-  max-height: calc(85vh - 65px);
+  flex: 1;
 }
 
 .formGroup {
@@ -659,15 +787,6 @@
   transition: all 0.2s;
 }
 
-.orderConfirmBtn:active {
-  transform: scale(0.97);
-}
-
-.orderConfirmBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 /* ============ Success Panel ============ */
 .successPanel {
   background: var(--white);
@@ -713,14 +832,9 @@
   font-size: 15px;
   font-weight: 600;
   box-shadow: var(--shadow-primary);
-  transition: all 0.2s;
 }
 
-.successBtn:active {
-  transform: scale(0.96);
-}
-
-/* ============ History Panel ============ */
+/* ============ History & Ingredients Lists ============ */
 .historyBtn {
   font-size: 12px;
   color: var(--text-secondary);
@@ -733,10 +847,6 @@
   white-space: nowrap;
 }
 
-.historyBtn:active {
-  background: var(--bg-hover);
-}
-
 .historyList {
   display: flex;
   flex-direction: column;
@@ -744,11 +854,20 @@
 }
 
 .historyCard {
-  background: var(--bg);
+  background: var(--white);
   border-radius: var(--radius-md);
   padding: 14px;
   border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
   transition: all 0.2s;
+}
+
+.formCard {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
 }
 
 .historyCardHeader {
@@ -762,11 +881,13 @@
 .historyCardId {
   font-weight: 600;
   color: var(--text-primary);
+  font-size: 14px;
 }
 
 .historyCardStatus {
   font-weight: 600;
   color: var(--primary);
+  font-size: 14px;
 }
 
 .historyCardItem {
@@ -795,19 +916,6 @@
   height: 100vh;
   background: linear-gradient(135deg, #1E293B 0%, #334155 100%);
   padding: 20px;
-  position: relative;
-  overflow: hidden;
-}
-
-.loginPage::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle at 30% 40%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 70% 60%, rgba(249, 115, 22, 0.08) 0%, transparent 50%);
 }
 
 .loginCard {
@@ -818,15 +926,11 @@
   max-width: 380px;
   box-shadow: var(--shadow-xl);
   text-align: center;
-  animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-  position: relative;
-  z-index: 1;
 }
 
 .loginTitle {
   font-size: 24px;
   font-weight: 800;
-  color: var(--text-primary);
   margin-bottom: 8px;
 }
 
@@ -848,14 +952,10 @@
   border-radius: var(--radius-sm);
   font-size: 15px;
   outline: none;
-  transition: all 0.25s;
-  background: var(--bg);
 }
 
 .loginForm input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  background: var(--white);
 }
 
 .loginForm button {
@@ -866,29 +966,11 @@
   border-radius: var(--radius-full);
   font-size: 16px;
   font-weight: 600;
-  cursor: pointer;
-  box-shadow: var(--shadow-primary);
   margin-top: 8px;
-  transition: all 0.3s;
-}
-
-.loginForm button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35);
-}
-
-.loginForm button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.loginForm button:active {
-  transform: scale(0.98);
 }
 
 .errorMsg {
   color: var(--red);
   font-size: 13px;
   text-align: left;
-  animation: shake 0.4s ease;
 }

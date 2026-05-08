@@ -14,6 +14,7 @@ export async function GET() {
     const { data: ingredients, error } = await supabase
       .from('ingredients')
       .select('*')
+      .eq('status', 'active')
       .order('updated_at', { ascending: false });
 
     if (error) throw error;
@@ -28,8 +29,8 @@ export async function GET() {
 export async function POST(req) {
   try {
     const session = await getCustomerSession();
-    if (!session) {
-      return NextResponse.json({ error: '未登录' }, { status: 401 });
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ error: '权限不足，仅管理员可操作' }, { status: 403 });
     }
 
     const body = await req.json();
@@ -65,8 +66,8 @@ export async function POST(req) {
 export async function PUT(req) {
   try {
     const session = await getCustomerSession();
-    if (!session) {
-      return NextResponse.json({ error: '未登录' }, { status: 401 });
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ error: '权限不足，仅管理员可操作' }, { status: 403 });
     }
 
     const url = new URL(req.url);
@@ -105,8 +106,8 @@ export async function PUT(req) {
 export async function DELETE(req) {
   try {
     const session = await getCustomerSession();
-    if (!session) {
-      return NextResponse.json({ error: '未登录' }, { status: 401 });
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ error: '权限不足，仅管理员可操作' }, { status: 403 });
     }
 
     const url = new URL(req.url);
@@ -118,7 +119,7 @@ export async function DELETE(req) {
 
     const { error } = await supabase
       .from('ingredients')
-      .delete()
+      .update({ status: 'deleted', last_updated_by: session.username, updated_at: new Date().toISOString() })
       .eq('id', id);
 
     if (error) throw error;

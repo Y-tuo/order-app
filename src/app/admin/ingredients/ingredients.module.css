@@ -1,0 +1,124 @@
+.page {
+  padding: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 24px;
+  color: #1e293b;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.listCard {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.headerRow {
+  margin-bottom: 20px;
+}
+
+.headerRow h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 4px;
+}
+
+.subText {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.table th {
+  text-align: left;
+  padding: 12px 16px;
+  background: #f8fafc;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 13px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 14px;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.deletedRow {
+  background: #fff1f2;
+}
+
+.deletedRow td {
+  color: #94a3b8;
+}
+
+.badgeActive {
+  background: #dcfce7;
+  color: #166534;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.badgeDeleted {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.btnRestore {
+  padding: 6px 12px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  margin-right: 8px;
+  transition: all 0.2s;
+}
+
+.btnRestore:hover {
+  background: #2563eb;
+}
+
+.btnHardDelete {
+  padding: 6px 12px;
+  background: white;
+  color: #ef4444;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.btnHardDelete:hover {
+  background: #fef2f2;
+  border-color: #ef4444;
+}
