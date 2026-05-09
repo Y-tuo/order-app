@@ -29,7 +29,7 @@ export default function MenuPage() {
 
   async function loadMenu() {
     try {
-      const res = await fetch('/api/admin/menu');
+      const res = await fetch(`/api/admin/menu?t=${Date.now()}`, { cache: 'no-store' });
       if (res.status === 401) { router.push('/admin/login'); return; }
       const data = await res.json();
       if (data.categories) setCategories(data.categories);

@@ -107,7 +107,7 @@ export default function CustomerPage() {
 
   const loadMenu = useCallback(async () => {
     try {
-      const res = await fetch('/api/menu');
+      const res = await fetch(`/api/menu?t=${Date.now()}`, { cache: 'no-store' });
       const data = await res.json();
       if (data.categories && data.menuItems) {
         setCategories(data.categories);
