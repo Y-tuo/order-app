@@ -20,6 +20,9 @@ export default function MenuPage() {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [batchMode, setBatchMode] = useState(false);
   const [draggedItem, setDraggedItem] = useState(null);
+  const [draggableItemId, setDraggableItemId] = useState(null);
+  const [draggedCategory, setDraggedCategory] = useState(null);
+  const [draggableCategoryId, setDraggableCategoryId] = useState(null);
   const router = useRouter();
 
   useEffect(() => { loadMenu(); }, []);
@@ -222,8 +225,12 @@ export default function MenuPage() {
     }
   }
 
-  // --- Drag and Drop Logic ---
+  // --- Drag and Drop Logic for Items ---
   function handleDragStart(e, item) {
+    if (draggableItemId !== item.id) {
+      e.preventDefault();
+      return;
+    }
     setDraggedItem(item);
     e.dataTransfer.effectAllowed = 'move';
   }
@@ -264,6 +271,52 @@ export default function MenuPage() {
     } catch (err) {
       alert('排序更新失败');
       loadMenu(); // revert on fail
+    }
+  }
+
+  // --- Drag and Drop Logic for Categories ---
+  function handleCategoryDragStart(e, cat) {
+    if (draggableCategoryId !== cat.id) {
+      e.preventDefault();
+      return;
+    }
+    setDraggedCategory(cat);
+    e.dataTransfer.effectAllowed = 'move';
+  }
+
+  function handleCategoryDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }
+
+  async function handleCategoryDrop(e, targetCat) {
+    e.preventDefault();
+    if (!draggedCategory || draggedCategory.id === targetCat.id) return;
+
+    const newCats = [...categories];
+    const draggedIdx = newCats.findIndex(c => c.id === draggedCategory.id);
+    const targetIdx = newCats.findIndex(c => c.id === targetCat.id);
+
+    const [movedCat] = newCats.splice(draggedIdx, 1);
+    newCats.splice(targetIdx, 0, movedCat);
+
+    // Update sort_order for all categories
+    newCats.forEach((c, idx) => {
+      c.sort_order = idx;
+    });
+
+    setCategories(newCats);
+    setDraggedCategory(null);
+
+    try {
+      await fetch('/api/admin/menu/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'category', items: newCats })
+      });
+    } catch (err) {
+      alert('排序更新失败');
+      loadMenu();
     }
   }
   // ---------------------------
@@ -325,7 +378,22 @@ export default function MenuPage() {
         <h3 className={styles.sectionTitle}>分类管理</h3>
         <div className={styles.catGrid}>
           {categories.map(cat => (
-            <div key={cat.id} className={styles.catCard}>
+            <div 
+              key={cat.id} 
+              className={styles.catCard}
+              draggable={draggableCategoryId === cat.id}
+              onDragStart={(e) => handleCategoryDragStart(e, cat)}
+              onDragOver={handleCategoryDragOver}
+              onDrop={(e) => handleCategoryDrop(e, cat)}
+            >
+              <div 
+                className={styles.dragHandle}
+                onMouseEnter={() => setDraggableCategoryId(cat.id)}
+                onMouseLeave={() => setDraggableCategoryId(null)}
+                style={{ cursor: 'grab', paddingRight: '8px', color: '#94a3b8' }}
+              >
+                ☰
+              </div>
               <span className={styles.catIcon}>{cat.icon}</span>
               <span className={styles.catName}>{cat.name}</span>
               <span className={styles.catCount}>
@@ -350,6 +418,7 @@ export default function MenuPage() {
             <table className={styles.table}>
               <thead>
                 <tr>
+                  {!batchMode && <th style={{ width: '40px' }}></th>}
                   {batchMode && (
                     <th className={styles.thCheck}>
                       <input
@@ -374,7 +443,7 @@ export default function MenuPage() {
                   return (
                     <React.Fragment key={`cat-${cat.id}`}>
                       <tr className={styles.categoryHeaderRow}>
-                        <td colSpan={batchMode ? 7 : 6} style={{ background: '#f8fafc', fontWeight: 700, padding: '12px 16px', color: '#475569' }}>
+                        <td colSpan={batchMode ? 7 : 7} style={{ background: '#f8fafc', fontWeight: 700, padding: '12px 16px', color: '#475569' }}>
                           <span style={{ marginRight: '8px' }}>{cat.icon}</span> {cat.name}
                         </td>
                       </tr>
@@ -382,12 +451,20 @@ export default function MenuPage() {
                         <tr 
                           key={item.id} 
                           className={selectedIds.has(item.id) ? styles.rowSelected : ''}
-                          draggable={!batchMode}
+                          draggable={draggableItemId === item.id}
                           onDragStart={(e) => handleDragStart(e, item)}
                           onDragOver={handleDragOver}
                           onDrop={(e) => handleDrop(e, item)}
-                          style={{ cursor: !batchMode ? 'move' : 'default' }}
                         >
+                          {!batchMode && (
+                            <td 
+                              onMouseEnter={() => setDraggableItemId(item.id)}
+                              onMouseLeave={() => setDraggableItemId(null)}
+                              style={{ cursor: 'grab', color: '#94a3b8', textAlign: 'center', width: '40px' }}
+                            >
+                              ☰
+                            </td>
+                          )}
                           {batchMode && (
                             <td className={styles.tdCheck}>
                               <input
@@ -436,7 +513,7 @@ export default function MenuPage() {
                   return (
                     <React.Fragment key="cat-uncategorized">
                       <tr className={styles.categoryHeaderRow}>
-                        <td colSpan={batchMode ? 7 : 6} style={{ background: '#f8fafc', fontWeight: 700, padding: '12px 16px', color: '#475569' }}>
+                        <td colSpan={batchMode ? 7 : 7} style={{ background: '#f8fafc', fontWeight: 700, padding: '12px 16px', color: '#475569' }}>
                           <span style={{ marginRight: '8px' }}>📦</span> 未分类
                         </td>
                       </tr>
@@ -444,12 +521,20 @@ export default function MenuPage() {
                         <tr 
                           key={item.id} 
                           className={selectedIds.has(item.id) ? styles.rowSelected : ''}
-                          draggable={!batchMode}
+                          draggable={draggableItemId === item.id}
                           onDragStart={(e) => handleDragStart(e, item)}
                           onDragOver={handleDragOver}
                           onDrop={(e) => handleDrop(e, item)}
-                          style={{ cursor: !batchMode ? 'move' : 'default' }}
                         >
+                          {!batchMode && (
+                            <td 
+                              onMouseEnter={() => setDraggableItemId(item.id)}
+                              onMouseLeave={() => setDraggableItemId(null)}
+                              style={{ cursor: 'grab', color: '#94a3b8', textAlign: 'center', width: '40px' }}
+                            >
+                              ☰
+                            </td>
+                          )}
                           {batchMode && (
                             <td className={styles.tdCheck}>
                               <input
