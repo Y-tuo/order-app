@@ -105,23 +105,24 @@ export default function CustomerPage() {
     setUser(null);
   }
 
-  async function loadMenu() {
+  const loadMenu = useCallback(async () => {
     try {
       const res = await fetch('/api/menu');
       const data = await res.json();
       if (data.categories && data.menuItems) {
         setCategories(data.categories);
         setMenuItems(data.menuItems);
-        if (data.categories.length > 0) {
-          setActiveCategory(data.categories[0].id);
-        }
+        setActiveCategory(prev => {
+          if (prev && data.categories.find(c => c.id === prev)) return prev;
+          return data.categories.length > 0 ? data.categories[0].id : null;
+        });
       }
     } catch (err) {
       console.error('加载菜单失败:', err);
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   // Load order history
   const loadHistory = useCallback(async () => {
@@ -155,6 +156,12 @@ export default function CustomerPage() {
       setLoadingIngredients(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'menu' && user) {
+      loadMenu();
+    }
+  }, [activeTab, user, loadMenu]);
 
   useEffect(() => {
     if (activeTab === 'orders') {
