@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './menu.module.css';
 
@@ -15,6 +15,7 @@ export default function MenuPage() {
     image_url: '', is_available: true, sort_order: 0
   });
   const [showCatForm, setShowCatForm] = useState(false);
+  const [editCategory, setEditCategory] = useState(null);
   const [catFormData, setCatFormData] = useState({ name: '', icon: '🍽️', sort_order: 0 });
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [batchMode, setBatchMode] = useState(false);
@@ -147,14 +148,34 @@ export default function MenuPage() {
     setSelectedIds(new Set());
   }
 
+  function openAddCategory() {
+    setEditCategory(null);
+    setCatFormData({ name: '', icon: '🍽️', sort_order: 0 });
+    setShowCatForm(true);
+  }
+
+  function openEditCategory(cat) {
+    setEditCategory(cat);
+    setCatFormData({ name: cat.name, icon: cat.icon || '🍽️', sort_order: cat.sort_order || 0 });
+    setShowCatForm(true);
+  }
+
   async function saveCategory(e) {
     e.preventDefault();
     try {
-      await fetch('/api/admin/menu', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'category', ...catFormData })
-      });
+      if (editCategory) {
+        await fetch('/api/admin/menu', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'category', ...catFormData, id: editCategory.id })
+        });
+      } else {
+        await fetch('/api/admin/menu', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'category', ...catFormData })
+        });
+      }
       setShowCatForm(false);
       setCatFormData({ name: '', icon: '🍽️', sort_order: 0 });
       loadMenu();
@@ -215,7 +236,7 @@ export default function MenuPage() {
               <button className={styles.batchBtn} onClick={() => setBatchMode(true)}>
                 <span>☑️</span> 批量管理
               </button>
-              <button className={styles.addCatBtn} onClick={() => setShowCatForm(true)}>+ 新增分类</button>
+              <button className={styles.addCatBtn} onClick={openAddCategory}>+ 新增分类</button>
               <button className={styles.addBtn} onClick={openAddItem}>+ 新增菜品</button>
             </>
           ) : (
@@ -263,7 +284,10 @@ export default function MenuPage() {
               <span className={styles.catCount}>
                 {items.filter(i => i.category_id === cat.id).length} 道菜
               </span>
-              <button className={styles.catDeleteBtn} onClick={() => deleteCategory(cat.id)}>✕</button>
+              <div className={styles.catActions}>
+                <button className={styles.catEditBtn} onClick={() => openEditCategory(cat)}>编辑</button>
+                <button className={styles.catDeleteBtn} onClick={() => deleteCategory(cat.id)}>删除</button>
+              </div>
             </div>
           ))}
         </div>
@@ -297,46 +321,113 @@ export default function MenuPage() {
                 </tr>
               </thead>
               <tbody>
-                {items.map(item => (
-                  <tr key={item.id} className={selectedIds.has(item.id) ? styles.rowSelected : ''}>
-                    {batchMode && (
-                      <td className={styles.tdCheck}>
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.has(item.id)}
-                          onChange={() => toggleSelect(item.id)}
-                        />
-                      </td>
-                    )}
-                    <td>
-                      <img
-                        src={item.image_url || '/images/placeholder.svg'}
-                        alt={item.name}
-                        className={styles.itemImg}
-                      />
-                    </td>
-                    <td>
-                      <div className={styles.itemName}>{item.name}</div>
-                      <div className={styles.itemDesc}>{item.description}</div>
-                    </td>
-                    <td><span className={styles.catTag}>{getCategoryName(item.category_id)}</span></td>
-                    <td className={styles.itemPrice}>{item.price} 饭票</td>
-                    <td>
-                      <button
-                        className={`${styles.toggleBtn} ${item.is_available ? styles.toggleOn : styles.toggleOff}`}
-                        onClick={() => toggleAvailable(item)}
-                      >
-                        {item.is_available ? '在售' : '停售'}
-                      </button>
-                    </td>
-                    <td>
-                      <div className={styles.actions}>
-                        <button className={styles.editBtn} onClick={() => openEditItem(item)}>编辑</button>
-                        <button className={styles.deleteBtn} onClick={() => deleteItem(item.id)}>删除</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {categories.map(cat => {
+                  const catItems = items.filter(i => i.category_id === cat.id);
+                  if (catItems.length === 0) return null;
+                  return (
+                    <React.Fragment key={`cat-${cat.id}`}>
+                      <tr className={styles.categoryHeaderRow}>
+                        <td colSpan={batchMode ? 7 : 6} style={{ background: '#f8fafc', fontWeight: 700, padding: '12px 16px', color: '#475569' }}>
+                          <span style={{ marginRight: '8px' }}>{cat.icon}</span> {cat.name}
+                        </td>
+                      </tr>
+                      {catItems.map(item => (
+                        <tr key={item.id} className={selectedIds.has(item.id) ? styles.rowSelected : ''}>
+                          {batchMode && (
+                            <td className={styles.tdCheck}>
+                              <input
+                                type="checkbox"
+                                checked={selectedIds.has(item.id)}
+                                onChange={() => toggleSelect(item.id)}
+                              />
+                            </td>
+                          )}
+                          <td>
+                            <img
+                              src={item.image_url || '/images/placeholder.svg'}
+                              alt={item.name}
+                              className={styles.itemImg}
+                            />
+                          </td>
+                          <td>
+                            <div className={styles.itemName}>{item.name}</div>
+                            <div className={styles.itemDesc}>{item.description}</div>
+                          </td>
+                          <td><span className={styles.catTag}>{cat.name}</span></td>
+                          <td className={styles.itemPrice}>{item.price} 饭票</td>
+                          <td>
+                            <button
+                              className={`${styles.toggleBtn} ${item.is_available ? styles.toggleOn : styles.toggleOff}`}
+                              onClick={() => toggleAvailable(item)}
+                            >
+                              {item.is_available ? '在售' : '停售'}
+                            </button>
+                          </td>
+                          <td>
+                            <div className={styles.actions}>
+                              <button className={styles.editBtn} onClick={() => openEditItem(item)}>编辑</button>
+                              <button className={styles.deleteBtn} onClick={() => deleteItem(item.id)}>删除</button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  );
+                })}
+                {/* Uncategorized items */}
+                {(() => {
+                  const uncategorizedItems = items.filter(i => !categories.find(c => c.id === i.category_id));
+                  if (uncategorizedItems.length === 0) return null;
+                  return (
+                    <React.Fragment key="cat-uncategorized">
+                      <tr className={styles.categoryHeaderRow}>
+                        <td colSpan={batchMode ? 7 : 6} style={{ background: '#f8fafc', fontWeight: 700, padding: '12px 16px', color: '#475569' }}>
+                          <span style={{ marginRight: '8px' }}>📦</span> 未分类
+                        </td>
+                      </tr>
+                      {uncategorizedItems.map(item => (
+                        <tr key={item.id} className={selectedIds.has(item.id) ? styles.rowSelected : ''}>
+                          {batchMode && (
+                            <td className={styles.tdCheck}>
+                              <input
+                                type="checkbox"
+                                checked={selectedIds.has(item.id)}
+                                onChange={() => toggleSelect(item.id)}
+                              />
+                            </td>
+                          )}
+                          <td>
+                            <img
+                              src={item.image_url || '/images/placeholder.svg'}
+                              alt={item.name}
+                              className={styles.itemImg}
+                            />
+                          </td>
+                          <td>
+                            <div className={styles.itemName}>{item.name}</div>
+                            <div className={styles.itemDesc}>{item.description}</div>
+                          </td>
+                          <td><span className={styles.catTag}>未分类</span></td>
+                          <td className={styles.itemPrice}>{item.price} 饭票</td>
+                          <td>
+                            <button
+                              className={`${styles.toggleBtn} ${item.is_available ? styles.toggleOn : styles.toggleOff}`}
+                              onClick={() => toggleAvailable(item)}
+                            >
+                              {item.is_available ? '在售' : '停售'}
+                            </button>
+                          </td>
+                          <td>
+                            <div className={styles.actions}>
+                              <button className={styles.editBtn} onClick={() => openEditItem(item)}>编辑</button>
+                              <button className={styles.deleteBtn} onClick={() => deleteItem(item.id)}>删除</button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  );
+                })()}
               </tbody>
             </table>
           </div>
@@ -395,7 +486,7 @@ export default function MenuPage() {
         <div className={styles.overlay} onClick={() => setShowCatForm(false)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h3>新增分类</h3>
+              <h3>{editCategory ? '编辑分类' : '新增分类'}</h3>
               <button className={styles.modalClose} onClick={() => setShowCatForm(false)}>✕</button>
             </div>
             <form onSubmit={saveCategory} className={styles.form}>

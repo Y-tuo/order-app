@@ -87,3 +87,58 @@
 .loading { padding: 40px; text-align: center; color: var(--text-muted); }
 
 @media (max-width: 768px) { .page { padding: 16px; } }
+
+.catActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.catEditBtn {
+  background: var(--bg);
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.catEditBtn:hover {
+  background: var(--bg-hover);
+  color: var(--primary);
+}
+
+.categoryHeaderRow td {
+  border-bottom: 2px solid var(--border) !important;
+}
+
+
+.catActions button {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.catCard .catDeleteBtn {
+  position: static;
+  display: inline-block;
+  width: auto;
+  height: auto;
+  border-radius: 4px;
+  background: var(--red-bg);
+  color: var(--red);
+  border: none;
+}
+.catCard .catDeleteBtn:hover {
+  background: var(--red);
+  color: var(--white);
+  transform: none;
+}
+

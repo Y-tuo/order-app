@@ -130,7 +130,7 @@ export async function DELETE(request) {
 
     if (ids) {
       // 批量删除
-      const idList = ids.split(',').map(Number).filter(n => !isNaN(n));
+      const idList = ids.split(',').map(id => id.trim()).filter(id => id !== '');
       if (idList.length === 0) {
         return NextResponse.json({ error: '无效的ID列表' }, { status: 400 });
       }
