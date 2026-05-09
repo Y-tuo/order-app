@@ -6,21 +6,22 @@ import { NextResponse } from 'next/server';
 export async function POST(request) {
   try {
     await requireAdmin();
-    const { items } = await request.json();
+    const { type, items } = await request.json();
 
     if (!items || !Array.isArray(items)) {
       return NextResponse.json({ error: '无效的数据' }, { status: 400 });
     }
 
-    // Supabase JS doesn't have a simple batch update for multiple rows with different values unless using upsert.
-    // However, upserting only specific columns might complain if NOT NULL columns are missing.
-    // For menu_items, if name, price are required, an upsert needs them.
-    // Instead of upsert, we can do sequential updates since the number of items in a category is usually small.
-    // Alternatively, just update the sort_order.
+    const table = type === 'category' ? 'categories' : 'menu_items';
+
     for (const item of items) {
+      const updateData = { sort_order: item.sort_order };
+      if (type !== 'category' && item.category_id) {
+        updateData.category_id = item.category_id;
+      }
       await supabaseAdmin
-        .from('menu_items')
-        .update({ sort_order: item.sort_order, category_id: item.category_id })
+        .from(table)
+        .update(updateData)
         .eq('id', item.id);
     }
     
