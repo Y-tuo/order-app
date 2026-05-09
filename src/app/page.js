@@ -201,7 +201,6 @@ export default function CustomerPage() {
   }
 
   async function deleteIngredient(id) {
-    if (!confirm('确定删除该食材吗？')) return;
     try {
       const res = await fetch(`/api/ingredients?id=${id}`, { method: 'DELETE' });
       const data = await res.json();
@@ -606,70 +605,11 @@ export default function CustomerPage() {
                       ))}
                     </div>
                   )}
+                  )}
                 </>
-              ) : (
-                  <form onSubmit={saveIngredient} className={styles.formCard}>
-                    <div className={styles.formGroup}>
-                      <label>食材名称 *</label>
-                      <input 
-                        type="text" 
-                        required 
-                        value={ingredientForm.name} 
-                        onChange={e => setIngredientForm({...ingredientForm, name: e.target.value})} 
-                        placeholder="例如：西红柿、鸡蛋" 
-                      />
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label>数量</label>
-                      <input 
-                        type="text" 
-                        value={ingredientForm.quantity || ''} 
-                        onChange={e => setIngredientForm({...ingredientForm, quantity: e.target.value})} 
-                        placeholder="例如：3个、半斤" 
-                      />
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label>分类</label>
-                      <select 
-                        className={styles.selectInput}
-                        value={ingredientForm.category} 
-                        onChange={e => setIngredientForm({...ingredientForm, category: e.target.value})}
-                      >
-                        {INGREDIENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label>备注</label>
-                      <input 
-                        type="text" 
-                        value={ingredientForm.remark || ''} 
-                        onChange={e => setIngredientForm({...ingredientForm, remark: e.target.value})} 
-                        placeholder="例如：快过期了" 
-                      />
-                    </div>
-                    <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-                      <button 
-                        type="button" 
-                        className={styles.cartSubmitBtn} 
-                        style={{ flex: 1 }} 
-                        onClick={() => setIngredientForm(null)}
-                      >
-                        取消
-                      </button>
-                      <button 
-                        type="submit" 
-                        className={styles.cartSubmitActive} 
-                        style={{ flex: 1, border: 'none', borderRadius: 'var(--radius-full)', color: 'white', fontWeight: 600 }}
-                        disabled={submitting}
-                      >
-                        {submitting ? '保存中...' : '保存'}
-                      </button>
-                    </div>
-                  </form>
-              )}
             </div>
             {/* Fixed bottom button for Admin */}
-            {!ingredientForm && isAdmin && (
+            {isAdmin && (
               <div className={styles.fixedBottomAction}>
                 <button 
                   className={styles.orderConfirmBtn} 
@@ -679,6 +619,78 @@ export default function CustomerPage() {
                 </button>
               </div>
             )}
+          </div>
+        )}
+          </div>
+        )}
+
+        {/* Ingredient Form Modal */}
+        {ingredientForm && (
+          <div className={styles.overlay} onClick={() => setIngredientForm(null)}>
+            <div className={styles.cartPanel} onClick={e => e.stopPropagation()} style={{ padding: '20px', paddingBottom: 'calc(20px + env(safe-area-inset-bottom, 0px))' }}>
+              <div className={styles.cartPanelHeader} style={{ padding: '0 0 16px 0', borderBottom: 'none' }}>
+                <h3 style={{ fontSize: '18px', fontWeight: '800' }}>{ingredientForm.id ? '编辑食材' : '添加新食材'}</h3>
+                <button className={styles.cartClearBtn} onClick={() => setIngredientForm(null)}>✕</button>
+              </div>
+              <form onSubmit={saveIngredient}>
+                <div className={styles.formGroup}>
+                  <label>食材名称 *</label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={ingredientForm.name} 
+                    onChange={e => setIngredientForm({...ingredientForm, name: e.target.value})} 
+                    placeholder="例如：西红柿、鸡蛋" 
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>数量</label>
+                  <input 
+                    type="text" 
+                    value={ingredientForm.quantity || ''} 
+                    onChange={e => setIngredientForm({...ingredientForm, quantity: e.target.value})} 
+                    placeholder="例如：3个、半斤" 
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>分类</label>
+                  <select 
+                    className={styles.selectInput}
+                    value={ingredientForm.category} 
+                    onChange={e => setIngredientForm({...ingredientForm, category: e.target.value})}
+                  >
+                    {INGREDIENT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div className={styles.formGroup}>
+                  <label>备注</label>
+                  <input 
+                    type="text" 
+                    value={ingredientForm.remark || ''} 
+                    onChange={e => setIngredientForm({...ingredientForm, remark: e.target.value})} 
+                    placeholder="例如：快过期了" 
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+                  <button 
+                    type="button" 
+                    className={styles.cartSubmitBtn} 
+                    style={{ flex: 1 }} 
+                    onClick={() => setIngredientForm(null)}
+                  >
+                    取消
+                  </button>
+                  <button 
+                    type="submit" 
+                    className={styles.cartSubmitActive} 
+                    style={{ flex: 1, border: 'none', borderRadius: 'var(--radius-full)', color: 'white', fontWeight: 600 }}
+                    disabled={submitting}
+                  >
+                    {submitting ? '保存中...' : '保存'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
 

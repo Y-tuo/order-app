@@ -19,6 +19,7 @@ export default function MenuPage() {
   const [catFormData, setCatFormData] = useState({ name: '', icon: '🍽️', sort_order: 0 });
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [batchMode, setBatchMode] = useState(false);
+  const [draggedItem, setDraggedItem] = useState(null);
   const router = useRouter();
 
   useEffect(() => { loadMenu(); }, []);
@@ -221,6 +222,52 @@ export default function MenuPage() {
     }
   }
 
+  // --- Drag and Drop Logic ---
+  function handleDragStart(e, item) {
+    setDraggedItem(item);
+    e.dataTransfer.effectAllowed = 'move';
+  }
+
+  function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }
+
+  async function handleDrop(e, targetItem) {
+    e.preventDefault();
+    if (!draggedItem || draggedItem.id === targetItem.id) return;
+
+    const newItems = [...items];
+    const draggedIdx = newItems.findIndex(i => i.id === draggedItem.id);
+    const targetIdx = newItems.findIndex(i => i.id === targetItem.id);
+
+    // If moving across categories, update category_id
+    const updatedDraggedItem = { ...draggedItem, category_id: targetItem.category_id };
+    newItems.splice(draggedIdx, 1);
+    newItems.splice(targetIdx, 0, updatedDraggedItem);
+
+    // Update sort_order for the target category
+    const categoryItems = newItems.filter(i => i.category_id === targetItem.category_id);
+    categoryItems.forEach((item, index) => {
+      item.sort_order = index;
+    });
+
+    setItems(newItems);
+    setDraggedItem(null);
+
+    try {
+      await fetch('/api/admin/menu/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: categoryItems })
+      });
+    } catch (err) {
+      alert('排序更新失败');
+      loadMenu(); // revert on fail
+    }
+  }
+  // ---------------------------
+
   const getCategoryName = (catId) => categories.find(c => c.id === catId)?.name || '未分类';
 
   return (
@@ -332,7 +379,15 @@ export default function MenuPage() {
                         </td>
                       </tr>
                       {catItems.map(item => (
-                        <tr key={item.id} className={selectedIds.has(item.id) ? styles.rowSelected : ''}>
+                        <tr 
+                          key={item.id} 
+                          className={selectedIds.has(item.id) ? styles.rowSelected : ''}
+                          draggable={!batchMode}
+                          onDragStart={(e) => handleDragStart(e, item)}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, item)}
+                          style={{ cursor: !batchMode ? 'move' : 'default' }}
+                        >
                           {batchMode && (
                             <td className={styles.tdCheck}>
                               <input
@@ -386,7 +441,15 @@ export default function MenuPage() {
                         </td>
                       </tr>
                       {uncategorizedItems.map(item => (
-                        <tr key={item.id} className={selectedIds.has(item.id) ? styles.rowSelected : ''}>
+                        <tr 
+                          key={item.id} 
+                          className={selectedIds.has(item.id) ? styles.rowSelected : ''}
+                          draggable={!batchMode}
+                          onDragStart={(e) => handleDragStart(e, item)}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, item)}
+                          style={{ cursor: !batchMode ? 'move' : 'default' }}
+                        >
                           {batchMode && (
                             <td className={styles.tdCheck}>
                               <input
